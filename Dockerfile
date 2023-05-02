@@ -14,11 +14,11 @@ RUN apk add --no-cache curl && \
         /app/geonames_dump/alternate_names \
         /app/geonames_dump/cities && \
     cd /app/geonames_dump && \
-    curl -L -o admin1_codes/admin1CodesASCII.txt http://download.geonames.org/export/dump/admin1CodesASCII.txt && \
-    curl -L -o admin2_codes/admin2Codes.txt http://download.geonames.org/export/dump/admin2Codes.txt && \
-    curl -L -o all_countries/allCountries.zip http://download.geonames.org/export/dump/allCountries.zip && \
-    curl -L -o alternate_names/alternateNames.zip http://download.geonames.org/export/dump/alternateNames.zip && \
-    curl -L -o cities/cities1000.zip http://download.geonames.org/export/dump/cities1000.zip && \
+    curl -k -L -o admin1_codes/admin1CodesASCII.txt https://download.geonames.org/export/dump/admin1CodesASCII.txt && \
+    curl -k -L -o admin2_codes/admin2Codes.txt https://download.geonames.org/export/dump/admin2Codes.txt && \
+    curl -k -L -o all_countries/allCountries.zip https://download.geonames.org/export/dump/allCountries.zip && \
+    curl -k -L -o alternate_names/alternateNames.zip https://download.geonames.org/export/dump/alternateNames.zip && \
+    curl -k -L -o cities/cities1000.zip https://download.geonames.org/export/dump/cities1000.zip && \
     cd all_countries && unzip allCountries.zip && rm allCountries.zip && cd .. && \
     cd cities && unzip cities1000.zip && rm cities1000.zip && cd .. && \
     cd alternate_names && unzip alternateNames.zip && rm alternateNames.zip
