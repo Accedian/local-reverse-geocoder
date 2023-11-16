@@ -1,10 +1,15 @@
-FROM node:10.12.0-alpine
+FROM node:21.1.0-alpine3.17
+RUN apk update && apk upgrade --no-cache
+RUN apk add openssl
 
 WORKDIR /app
 
-ADD package.json package-lock.json /app/
+COPY package.json .
+COPY package-lock.json .
+COPY postinstall.js .
+COPY app.js .
+COPY index.js .
 RUN npm install
-ADD app.js index.js /app/
 
 RUN apk add --no-cache curl && \
     mkdir -p \
@@ -26,3 +31,4 @@ RUN apk add --no-cache curl && \
 ENTRYPOINT ["npm"]
 CMD ["start"]
 
+EXPOSE 3000
