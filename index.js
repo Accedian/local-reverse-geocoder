@@ -174,6 +174,27 @@ var geocoder = {
     );
   },
 
+  _getHttpsOptions: function () {
+    var httpsOptions
+    const rejectUnauthorizedEnv = process.env.SHOULD_REJECT_UNAUTHORIZED
+    if (rejectUnauthorizedEnv !== null && rejectUnauthorizedEnv !== undefined) {
+      var rejectUnauthorized = rejectUnauthorizedEnv.toLowerCase()
+      if (rejectUnauthorizedEnv === 'false') {
+        rejectUnauthorized = false
+      } else if (rejectUnauthorizedEnv === 'true') {
+        rejectUnauthorized = true
+      }
+
+      httpsOptions = {
+        rejectUnauthorized,
+      }
+    }
+
+    console.log(`_getHttpsOptions - ${httpsOptions}`)
+
+    return httpsOptions
+  },
+
   _downloadFile: function (
     dataName,
     geonamesZipFilename,
@@ -189,10 +210,18 @@ var geocoder = {
       `Getting GeoNames ${dataName} data from ${geonamesUrl} (this may take a while)`
     );
 
-    request({
+    const requestOptions = {
       url: geonamesUrl,
       encoding: null,
-    })
+    }
+
+    const maybeHttpsOptions = this._getHttpsOptions()
+    console.log(`_downloadFile - ${geonamesUrl} - rejectUnauthorized - ${maybeHttpsOptions.rejectUnauthorized}`)
+    if (maybeHttpsOptions !== null && maybeHttpsOptions !== undefined) {
+      requestOptions['rejectUnauthorized'] = maybeHttpsOptions.rejectUnauthorized
+    }
+
+    request(requestOptions)
       .on('error', (err) => {
         callback(
           `Error downloading GeoNames ${dataName} data` +
@@ -229,11 +258,19 @@ var geocoder = {
       `Getting GeoNames ${dataName} data from ${geonamesUrl} (this may take a while)`
     );
 
-    let foundFiles = 0;
-    request({
+    const requestOptions = {
       url: geonamesUrl,
       encoding: null,
-    })
+    }
+
+    const maybeHttpsOptions = this._getHttpsOptions()
+    console.log(`_downloadAndExtractFileFromZip - ${geonamesUrl} - rejectUnauthorized - ${maybeHttpsOptions.rejectUnauthorized}`)
+    if (maybeHttpsOptions !== null && maybeHttpsOptions !== undefined) {
+      requestOptions['rejectUnauthorized'] = maybeHttpsOptions.rejectUnauthorized
+    }
+
+    let foundFiles = 0;
+    request(requestOptions)
       .on('error', (err) => {
         callback(
           `Error downloading GeoNames ${dataName} data` +
