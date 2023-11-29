@@ -1,6 +1,6 @@
 FROM node:21.1.0-alpine3.17
 RUN apk update && apk upgrade --no-cache
-RUN apk add openssl
+RUN apk add --no-cache openssl --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
 
 WORKDIR /app
 
