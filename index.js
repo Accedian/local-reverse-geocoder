@@ -216,7 +216,7 @@ var geocoder = {
     }
 
     const maybeHttpsOptions = this._getHttpsOptions()
-    console.log(`_downloadFile - ${geonamesUrl} - rejectUnauthorized - ${maybeHttpsOptions.rejectUnauthorized}`)
+    console.log(`_downloadFile - ${geonamesUrl} - rejectUnauthorized - ${maybeHttpsOptions?.rejectUnauthorized}`)
     if (maybeHttpsOptions !== null && maybeHttpsOptions !== undefined) {
       requestOptions['rejectUnauthorized'] = maybeHttpsOptions.rejectUnauthorized
     }

@@ -15,8 +15,7 @@ LOCAL_BUILD_PLATFORM := linux/amd64
 ifeq ($(UNAME),arm64)
 	LOCAL_BUILD_PLATFORM = linux/arm64/v8
 endif
-BUILD_PLATFORMS ?= linux/amd64
-# BUILD_PLATFORMS ?= linux/amd64,linux/arm64/v8
+BUILD_PLATFORMS ?= linux/amd64,linux/arm64/v8
 
 dockerbin: .FORCE
 	npm install
@@ -27,7 +26,7 @@ docker: dockerbin
 
 push: dockerbin
 	echo "building with $(BUILD_PLATFORMS)"
-	docker buildx build --provenance=false --platform $(BUILD_PLATFORMS) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --file $(DOCKERFILE_TARGET) --push .
+	docker buildx build --platform $(BUILD_PLATFORMS) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --file $(DOCKERFILE_TARGET) --push .
 
 circleci-push:
 	echo "building with $(BUILD_PLATFORMS)"
