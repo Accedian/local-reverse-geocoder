@@ -1,7 +1,11 @@
-FROM node:21.2.0-alpine3.18
-RUN apk update && apk upgrade --no-cache
-RUN apk add --no-cache openssl --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
-RUN apk upgrade busybox --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main
+FROM node:21-alpine3.18
+
+RUN apk update && \
+  apk add --no-cache \
+  openssl --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
+  curl --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
+  busybox --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main && \
+  apk upgrade
 
 WORKDIR /app
 
@@ -12,8 +16,7 @@ COPY app.js .
 COPY index.js .
 RUN npm install
 
-RUN apk add --no-cache curl && \
-    mkdir -p \
+RUN mkdir -p \
         /app/geonames_dump/admin1_codes \
         /app/geonames_dump/admin2_codes \
         /app/geonames_dump/all_countries \
