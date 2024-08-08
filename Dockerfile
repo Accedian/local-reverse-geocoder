@@ -2,9 +2,9 @@ FROM node:21-alpine
 
 RUN apk update && \
   apk add --no-cache \
-  openssl --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
-  curl --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main \
-  busybox --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main && \
+  openssl --repository=http://dl-cdn.alpinelinux.org/alpine/latest-stable/main \
+  curl --repository=http://dl-cdn.alpinelinux.org/alpine/latest-stable/main \
+  busybox --repository=http://dl-cdn.alpinelinux.org/alpine/latest-stable/main && \
   apk upgrade
 
 WORKDIR /app
