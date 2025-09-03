@@ -18,7 +18,6 @@ endif
 BUILD_PLATFORMS ?= linux/amd64,linux/arm64/v8
 
 dockerbin: .FORCE
-	npm install
 
 docker: dockerbin
 	echo "building with $(LOCAL_BUILD_PLATFORM)"
