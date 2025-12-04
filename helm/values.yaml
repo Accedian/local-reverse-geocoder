@@ -1,0 +1,17 @@
+# Default values for weld-reverse-geocoder.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+weld_geocoder:
+  replicaCount: 1
+  image:
+    registry: gcr.io
+    repository: npav-172917/weld-reverse-geocoder
+    tag: 24.05.2
+    pullPolicy: IfNotPresent
+  resources: {}
+    # requests:
+    #   cpu: 1
+    #   memory: 5Gi
+    # limits:
+    #   cpu: 1
+    #   memory: 5Gi
