@@ -68,7 +68,14 @@ app.listen(port, function () {
       },
       countries: [],
     },
-    function () {
+    function (err) {
+      if (err) {
+        console.error(
+          'Geocoder initialization failed.',
+          err
+        );
+        return
+      }
       console.log('Geocoder initialized and ready.');
       console.log('Endpoints:');
       console.log(`- http://localhost:${port}/healthcheck`);

@@ -12,17 +12,17 @@ RUN mkdir -p \
   ${GEONAMES_DUMP_DIR}/admin2_codes \
   ${GEONAMES_DUMP_DIR}/all_countries \
   ${GEONAMES_DUMP_DIR}/alternate_names \
-  ${GEONAMES_DUMP_DIR}/cities
+  ${GEONAMES_DUMP_DIR}/cities1000
 
 # Download and process geonames data
 RUN curl -L -o ${GEONAMES_DUMP_DIR}/admin1_codes/admin1CodesASCII.txt https://download.geonames.org/export/dump/admin1CodesASCII.txt && \
   curl -L -o ${GEONAMES_DUMP_DIR}/admin2_codes/admin2Codes.txt https://download.geonames.org/export/dump/admin2Codes.txt && \
   curl -L -o ${GEONAMES_DUMP_DIR}/all_countries/allCountries.zip https://download.geonames.org/export/dump/allCountries.zip && \
   curl -L -o ${GEONAMES_DUMP_DIR}/alternate_names/alternateNames.zip https://download.geonames.org/export/dump/alternateNames.zip && \
-  curl -L -o ${GEONAMES_DUMP_DIR}/cities/cities1000.zip https://download.geonames.org/export/dump/cities1000.zip && \
+  curl -L -o ${GEONAMES_DUMP_DIR}/cities1000/cities1000.zip https://download.geonames.org/export/dump/cities1000.zip && \
   unzip ${GEONAMES_DUMP_DIR}/all_countries/allCountries.zip -d ${GEONAMES_DUMP_DIR}/all_countries && \
   unzip ${GEONAMES_DUMP_DIR}/alternate_names/alternateNames.zip -d ${GEONAMES_DUMP_DIR}/alternate_names && \
-  unzip ${GEONAMES_DUMP_DIR}/cities/cities1000.zip -d ${GEONAMES_DUMP_DIR}/cities && \
+  unzip ${GEONAMES_DUMP_DIR}/cities1000/cities1000.zip -d ${GEONAMES_DUMP_DIR}/cities1000 && \
   rm ${GEONAMES_DUMP_DIR}/*/*.zip
 
 COPY package.json package-lock.json postinstall.js app.js index.js ./

@@ -225,7 +225,7 @@ var geocoder = {
       .on('error', (err) => {
         callback(
           `Error downloading GeoNames ${dataName} data` +
-            (err ? ': ' + err : '')
+          (err ? ': ' + err : '')
         );
       })
       .on('response', (response) => {
@@ -274,7 +274,7 @@ var geocoder = {
       .on('error', (err) => {
         callback(
           `Error downloading GeoNames ${dataName} data` +
-            (err ? ': ' + err : '')
+          (err ? ': ' + err : '')
         );
       })
       .on('response', (response) => {
@@ -290,7 +290,7 @@ var geocoder = {
         if (entryType === 'File' && entryPath === fileNameInsideZip) {
           debug(
             `Unzipping GeoNames ${dataName} data - found ${entryType} ${entryPath}` +
-              (typeof entrySize === 'number' ? ` (${entrySize} B)` : '')
+            (typeof entrySize === 'number' ? ` (${entrySize} B)` : '')
           );
           foundFiles++;
           entry.pipe(fs.createWriteStream(outputFilePath)).on('finish', () => {
@@ -682,8 +682,8 @@ var geocoder = {
 
     debug(
       'Initializing local reverse geocoder using dump ' +
-        'directory: ' +
-        GEONAMES_DUMP
+      'directory: ' +
+      GEONAMES_DUMP
     );
     // Create local cache folder
     if (!fs.existsSync(GEONAMES_DUMP)) {
@@ -774,7 +774,10 @@ var geocoder = {
         // Main callback
         function (err) {
           if (err) {
-            throw err;
+            if (callback) {
+              return callback(err);
+            }
+            return;
           }
           if (callback) {
             return callback();
@@ -801,7 +804,10 @@ var geocoder = {
         // Main callback
         function (err, countriesData) {
           if (err) {
-            throw err;
+            if (callback) {
+              return callback(err);
+            }
+            return;
           }
 
           debug('Finished parsing countries files');
@@ -835,7 +841,7 @@ var geocoder = {
       callback = arg3;
     }
     this._lookUp(points, maxResults, function (err, results) {
-      return callback(null, results);
+      return callback(err, results);
     });
   },
 
@@ -843,7 +849,10 @@ var geocoder = {
     var that = this;
     // If not yet initialied, then initialize
     if (!this._kdTree) {
-      return this.init({}, function () {
+      return this.init({}, function (err) {
+        if (err) {
+          return callback(err);
+        }
         return that.lookUp(points, maxResults, callback);
       });
     }
@@ -933,19 +942,19 @@ var geocoder = {
         }
         debug(
           'Found result(s) for point ' +
-            JSON.stringify(point) +
-            result.map(function (subResult, i) {
-              return (
-                '\n  (' +
-                ++i + // jshint ignore:line
-                ') {"geoNameId":"' +
-                subResult.geoNameId +
-                '",' +
-                '"name":"' +
-                subResult.name +
-                '"}'
-              );
-            })
+          JSON.stringify(point) +
+          result.map(function (subResult, i) {
+            return (
+              '\n  (' +
+              ++i + // jshint ignore:line
+              ') {"geoNameId":"' +
+              subResult.geoNameId +
+              '",' +
+              '"name":"' +
+              subResult.name +
+              '"}'
+            );
+          })
         );
         return innerCallback(null, result);
       };
