@@ -217,7 +217,7 @@ var geocoder = {
       // the origin TLS handshake through a CONNECT tunnel (HTTPS via proxy).
       if (hasConnectOptions) {
         return new EnvHttpProxyAgent(
-          { connect: connect, requestTls: connect }
+          { connect: connect, requestTls: connect, proxyTls: connect }
         );
       }
       return new EnvHttpProxyAgent();

@@ -145,6 +145,20 @@ test('_getDispatcher: proxy + CA returns EnvHttpProxyAgent (proxy takes priority
   rmrf(tmpDir);
 });
 
+test('_getDispatcher: https:// proxy + CA passes proxyTls options', () => {
+  clearDispatcherEnv();
+  const tmpDir = makeTempDir();
+  const caPath = path.join(tmpDir, 'ca.pem');
+  fs.writeFileSync(caPath, '-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----\n');
+  process.env.HTTPS_PROXY = 'https://proxy.corp:443';
+  process.env.GEOCODER_CA_FILE = caPath;
+
+  const dispatcher = geocoder._getDispatcher();
+  assert.ok(dispatcher instanceof EnvHttpProxyAgent, 'expected EnvHttpProxyAgent');
+
+  rmrf(tmpDir);
+});
+
 // ── _housekeepingSync ───────────────────────────────────────────────────
 
 test('_housekeepingSync: removes all files except the named output', () => {
