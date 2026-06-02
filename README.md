@@ -10,6 +10,8 @@ latitude/longitude pair, and it returns the closest city to that point.
 
 ## Installation
 
+Requires **Node.js ≥ 22** (uses the built-in global `fetch` for GeoNames downloads).
+
 ```bash
 $ npm install local-reverse-geocoder
 ```
@@ -31,6 +33,29 @@ To use it:
 $ docker build -t local-reverse-geocoder .
 $ docker run -it -e PORT=3000 --rm local-reverse-geocoder
 ```
+
+## Network configuration (proxies & custom CAs)
+
+Data is downloaded from GeoNames using Node's built-in global `fetch`. In
+restricted or TLS-inspected networks the following environment variables control
+outbound connectivity:
+
+- `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY`: standard proxy variables. When set,
+  downloads are routed through the configured proxy (honored via undici's
+  `EnvHttpProxyAgent`). `NO_PROXY` lists hosts that bypass the proxy.
+- `NODE_EXTRA_CA_CERTS`: path to a PEM file with additional trusted CA
+  certificates. This is read by Node at startup and applies globally to `fetch`.
+  Preferred way to trust a private/inspection CA.
+- `GEOCODER_CA_FILE`: optional path to a PEM CA file. The CA is trusted *in
+  addition to* the public root certificates for the GeoNames downloads (useful
+  when you cannot set `NODE_EXTRA_CA_CERTS`).
+- `SHOULD_REJECT_UNAUTHORIZED`: set to `false` to disable TLS certificate
+  validation for the downloads (last-resort fallback; prefer a custom CA).
+
+To validate these network paths end-to-end (direct, outbound-proxy, and
+TLS-inspected/private-CA) against a local GeoNames mirror, run
+`npm run validate:network` (requires `zip` and `openssl` on `PATH`). It writes a
+pass/fail report to `validation/RESULTS.md`.
 
 ## Usage in Node.js
 
