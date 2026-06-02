@@ -10,6 +10,8 @@ latitude/longitude pair, and it returns the closest city to that point.
 
 ## Installation
 
+Requires **Node.js ≥ 22** (uses the built-in global `fetch` for GeoNames downloads).
+
 ```bash
 $ npm install local-reverse-geocoder
 ```

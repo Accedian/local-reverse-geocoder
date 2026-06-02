@@ -213,9 +213,14 @@ var geocoder = {
     // Native fetch on Node 22 does not honor proxy env vars and has no `ca`
     // option, so build an undici dispatcher when proxy/CA/TLS overrides apply.
     if (hasProxy) {
-      return new EnvHttpProxyAgent(
-        hasConnectOptions ? { connect: connect } : undefined
-      );
+      // `connect` applies to the proxy connection; `requestTls` applies to
+      // the origin TLS handshake through a CONNECT tunnel (HTTPS via proxy).
+      if (hasConnectOptions) {
+        return new EnvHttpProxyAgent(
+          { connect: connect, requestTls: connect }
+        );
+      }
+      return new EnvHttpProxyAgent();
     }
     if (hasConnectOptions) {
       return new Agent({ connect: connect });

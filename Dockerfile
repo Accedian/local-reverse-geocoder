@@ -26,7 +26,7 @@ RUN curl -L -o ${GEONAMES_DUMP_DIR}/admin1_codes/admin1CodesASCII.txt https://do
   rm ${GEONAMES_DUMP_DIR}/*/*.zip
 
 COPY package.json package-lock.json postinstall.js app.js index.js ./
-RUN npm install
+RUN npm ci
 
 # Guard: the deprecated `request` library must never be (re)installed.
 RUN if [ -e node_modules/request/package.json ]; then \

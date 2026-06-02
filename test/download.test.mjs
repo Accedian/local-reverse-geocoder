@@ -122,6 +122,62 @@ test('_downloadAndExtractFileFromZip: extracts the named entry', async () => {
   assert.deepEqual(fs.readFileSync(out), txtBytes);
 });
 
+test('_downloadAndExtractFileFromZip: non-200 fires error callback', async () => {
+  const folder = path.join(tmpDir, 'zipboom');
+  fs.mkdirSync(folder, { recursive: true });
+
+  await assert.rejects(
+    callDownload(geocoder, '_downloadAndExtractFileFromZip', [
+      'zipboom',
+      'boom.txt',
+      'cities_test.txt',
+      folder,
+      'out.txt',
+    ]),
+    /response 500/
+  );
+  assert.equal(fs.existsSync(path.join(folder, 'out.txt')), false);
+});
+
+test('_downloadAndExtractFileFromZip: stream error fires error callback', async () => {
+  const folder = path.join(tmpDir, 'zipdrop');
+  fs.mkdirSync(folder, { recursive: true });
+
+  await assert.rejects(
+    callDownload(geocoder, '_downloadAndExtractFileFromZip', [
+      'zipdrop',
+      'drop.txt',
+      'cities_test.txt',
+      folder,
+      'out.txt',
+    ]),
+    /Error downloading GeoNames/
+  );
+});
+
+test('_downloadFile: fetch rejection (unreachable host) fires error callback', async () => {
+  const folder = path.join(tmpDir, 'unreachable');
+  fs.mkdirSync(folder, { recursive: true });
+
+  // Temporarily point at a non-routable address to trigger fetch() rejection.
+  const saved = geocoder._geoNamesUrl;
+  geocoder._geoNamesUrl = 'http://192.0.2.1:1/'; // TEST-NET, guaranteed unreachable
+  try {
+    await assert.rejects(
+      callDownload(geocoder, '_downloadFile', [
+        'unreachable',
+        'ok.txt',
+        null,
+        folder,
+        'out.txt',
+      ]),
+      /Error downloading GeoNames/
+    );
+  } finally {
+    geocoder._geoNamesUrl = saved;
+  }
+});
+
 test('_downloadAndExtractFileFromZip: missing entry triggers the file-count guard', async () => {
   const folder = path.join(tmpDir, 'zipmissing');
   fs.mkdirSync(folder, { recursive: true });

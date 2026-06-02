@@ -9,6 +9,8 @@ import {
   makeTempDir,
   rmrf,
   startHttpOrigin,
+  generateSelfSignedCert,
+  startHttpsOrigin,
   startProxy,
   closeServer,
   callDownload,
@@ -24,6 +26,22 @@ const origin = await startHttpOrigin({
 });
 const proxy = await startProxy();
 
+// Self-signed HTTPS origin for the CONNECT tunnel test.
+const tlsCert = generateSelfSignedCert();
+const tlsSkip = tlsCert ? false : 'openssl unavailable';
+let httpsOrigin;
+if (tlsCert) {
+  httpsOrigin = await startHttpsOrigin(
+    {
+      '/ok.txt': (req, res) => {
+        res.writeHead(200);
+        res.end(txtBytes);
+      },
+    },
+    tlsCert
+  );
+}
+
 const { default: geocoder } = await import('../index.js');
 geocoder._geoNamesUrl = origin.baseUrl;
 
@@ -34,10 +52,13 @@ before(() => {
 });
 beforeEach(() => {
   savedEnv.HTTP_PROXY = process.env.HTTP_PROXY;
+  savedEnv.HTTPS_PROXY = process.env.HTTPS_PROXY;
   savedEnv.NO_PROXY = process.env.NO_PROXY;
+  savedEnv.SHOULD_REJECT_UNAUTHORIZED = process.env.SHOULD_REJECT_UNAUTHORIZED;
+  savedEnv.GEOCODER_CA_FILE = process.env.GEOCODER_CA_FILE;
 });
 afterEach(() => {
-  for (const key of ['HTTP_PROXY', 'NO_PROXY']) {
+  for (const key of ['HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY', 'SHOULD_REJECT_UNAUTHORIZED', 'GEOCODER_CA_FILE']) {
     if (savedEnv[key] === undefined) {
       delete process.env[key];
     } else {
@@ -49,6 +70,8 @@ after(async () => {
   rmrf(tmpDir);
   await closeServer(origin.server);
   await closeServer(proxy.server);
+  if (httpsOrigin) await closeServer(httpsOrigin.server);
+  if (tlsCert) rmrf(tlsCert.dir);
 });
 
 test('HTTP_PROXY routes the download through the proxy', async () => {
@@ -94,4 +117,35 @@ test('NO_PROXY bypasses the proxy for the matching host', async () => {
     before,
     'expected the proxy to be bypassed'
   );
+});
+
+test('HTTPS_PROXY tunnels through proxy to HTTPS origin via CONNECT', { skip: tlsSkip }, async () => {
+  const folder = path.join(tmpDir, 'httpsproxy');
+  fs.mkdirSync(folder, { recursive: true });
+  process.env.HTTPS_PROXY = proxy.url;
+  delete process.env.HTTP_PROXY;
+  delete process.env.NO_PROXY;
+  // Trust the self-signed cert so the TLS handshake succeeds after tunnel.
+  process.env.GEOCODER_CA_FILE = tlsCert.certPath;
+  delete process.env.SHOULD_REJECT_UNAUTHORIZED;
+
+  geocoder._geoNamesUrl = httpsOrigin.baseUrl;
+  const before = proxy.getRequestCount();
+  try {
+    const out = await callDownload(geocoder, '_downloadFile', [
+      'httpsproxy',
+      'ok.txt',
+      null,
+      folder,
+      'out.txt',
+    ]);
+
+    assert.deepEqual(fs.readFileSync(out), txtBytes);
+    assert.ok(
+      proxy.getRequestCount() > before,
+      'expected the proxy CONNECT tunnel to be used'
+    );
+  } finally {
+    geocoder._geoNamesUrl = origin.baseUrl;
+  }
 });

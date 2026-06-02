@@ -4,6 +4,7 @@ import test, { before, beforeEach, afterEach, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFile } from 'node:child_process';
 import {
   readFixture,
   makeTempDir,
@@ -108,5 +109,43 @@ test(
     delete process.env.GEOCODER_CA_FILE;
     process.env.SHOULD_REJECT_UNAUTHORIZED = 'true';
     await assert.rejects(download('rejecttrue'), /Error downloading GeoNames/);
+  }
+);
+
+// NODE_EXTRA_CA_CERTS is read once at process startup, so it cannot be tested
+// in-process. We spawn a child with the env var set.
+test(
+  'NODE_EXTRA_CA_CERTS trusting the cert succeeds (child process)',
+  { skip, timeout: 15000 },
+  async () => {
+    const workerPath = path.join(
+      path.dirname(new URL(import.meta.url).pathname),
+      '..', 'test-helpers', 'tls-extra-ca-worker.mjs'
+    );
+    await new Promise((resolve, reject) => {
+      execFile(
+        process.execPath,
+        [workerPath],
+        {
+          env: {
+            ...process.env,
+            NODE_EXTRA_CA_CERTS: tls.certPath,
+            GEONAMES_TEST_URL: origin.baseUrl,
+            GEOCODER_CA_FILE: '',
+            SHOULD_REJECT_UNAUTHORIZED: '',
+          },
+          timeout: 12000,
+        },
+        (err, stdout, stderr) => {
+          if (err) {
+            return reject(
+              new Error(`Worker failed (code ${err.code}): ${stderr || stdout}`)
+            );
+          }
+          assert.ok(stdout.includes('OK'), 'expected worker to print OK');
+          resolve();
+        }
+      );
+    });
   }
 );
