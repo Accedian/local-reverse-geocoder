@@ -4,3 +4,5 @@
 /out
 # Test certs are generated at runtime; never commit private keys.
 test/fixtures/*.pem
+# Generated validation report.
+validation/RESULTS.md

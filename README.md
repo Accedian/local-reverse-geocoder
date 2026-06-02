@@ -50,6 +50,11 @@ outbound connectivity:
 - `SHOULD_REJECT_UNAUTHORIZED`: set to `false` to disable TLS certificate
   validation for the downloads (last-resort fallback; prefer a custom CA).
 
+To validate these network paths end-to-end (direct, outbound-proxy, and
+TLS-inspected/private-CA) against a local GeoNames mirror, run
+`npm run validate:network` (requires `zip` and `openssl` on `PATH`). It writes a
+pass/fail report to `validation/RESULTS.md`.
+
 ## Usage in Node.js
 
 ### Init
