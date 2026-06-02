@@ -29,20 +29,25 @@
 
 'use strict';
 
+/* global fetch */
+
 var debug = require('debug')('local-reverse-geocoder');
 var fs = require('fs');
 var path = require('path');
 var parser = require('csv-parse');
 var parse = parser.parse;
 var kdTree = require('kdt');
-var request = require('request');
 var unzip = require('unzip-stream');
 var async = require('async');
 var readline = require('readline');
 const { basename } = require('path');
+const { Readable } = require('node:stream');
+const { EnvHttpProxyAgent, Agent } = require('undici');
 
 // All data from http://download.geonames.org/export/dump/
-var GEONAMES_URL = 'https://download.geonames.org/export/dump/';
+// The base URL can be overridden (e.g. for testing or mirrors) via GEONAMES_URL.
+var GEONAMES_URL =
+  process.env.GEONAMES_URL || 'https://download.geonames.org/export/dump/';
 
 var CITIES_FILES = ['cities500', 'cities1000', 'cities5000', 'cities15000'];
 var CITIES_FILE = 'cities1000';
@@ -174,25 +179,47 @@ var geocoder = {
     );
   },
 
-  _getHttpsOptions: function () {
-    var httpsOptions
-    const rejectUnauthorizedEnv = process.env.SHOULD_REJECT_UNAUTHORIZED
-    if (rejectUnauthorizedEnv !== null && rejectUnauthorizedEnv !== undefined) {
-      var rejectUnauthorized = rejectUnauthorizedEnv.toLowerCase()
-      if (rejectUnauthorizedEnv === 'false') {
-        rejectUnauthorized = false
-      } else if (rejectUnauthorizedEnv === 'true') {
-        rejectUnauthorized = true
-      }
+  _getRejectUnauthorized: function () {
+    const rejectUnauthorizedEnv = process.env.SHOULD_REJECT_UNAUTHORIZED;
+    if (rejectUnauthorizedEnv === null || rejectUnauthorizedEnv === undefined) {
+      return undefined;
+    }
+    return rejectUnauthorizedEnv.toLowerCase() !== 'false';
+  },
 
-      httpsOptions = {
-        rejectUnauthorized,
-      }
+  _getDispatcher: function () {
+    const connect = {};
+
+    const rejectUnauthorized = this._getRejectUnauthorized();
+    if (rejectUnauthorized !== undefined) {
+      connect.rejectUnauthorized = rejectUnauthorized;
     }
 
-    console.log(`_getHttpsOptions - ${httpsOptions}`)
+    const caFile = process.env.GEOCODER_CA_FILE;
+    if (caFile) {
+      connect.ca = fs.readFileSync(caFile);
+    }
 
-    return httpsOptions
+    const hasConnectOptions = Object.keys(connect).length > 0;
+    const hasProxy = Boolean(
+      process.env.HTTP_PROXY ||
+        process.env.http_proxy ||
+        process.env.HTTPS_PROXY ||
+        process.env.https_proxy
+    );
+
+    // Native fetch on Node 22 does not honor proxy env vars and has no `ca`
+    // option, so build an undici dispatcher when proxy/CA/TLS overrides apply.
+    if (hasProxy) {
+      return new EnvHttpProxyAgent(
+        hasConnectOptions ? { connect: connect } : undefined
+      );
+    }
+    if (hasConnectOptions) {
+      return new Agent({ connect: connect });
+    }
+    // No overrides: keep default fetch behavior unchanged.
+    return undefined;
   },
 
   _downloadFile: function (
@@ -210,36 +237,38 @@ var geocoder = {
       `Getting GeoNames ${dataName} data from ${geonamesUrl} (this may take a while)`
     );
 
-    const requestOptions = {
-      url: geonamesUrl,
-      encoding: null,
-    }
+    const dispatcher = this._getDispatcher();
+    const fetchOptions = dispatcher ? { dispatcher: dispatcher } : undefined;
 
-    const maybeHttpsOptions = this._getHttpsOptions()
-    console.log(`_downloadFile - ${geonamesUrl} - rejectUnauthorized - ${maybeHttpsOptions?.rejectUnauthorized}`)
-    if (maybeHttpsOptions !== null && maybeHttpsOptions !== undefined) {
-      requestOptions['rejectUnauthorized'] = maybeHttpsOptions.rejectUnauthorized
-    }
-
-    request(requestOptions)
-      .on('error', (err) => {
+    fetch(geonamesUrl, fetchOptions)
+      .then((response) => {
+        if (!response.ok) {
+          return callback(
+            `Error downloading GeoNames ${dataName} data (response ${response.status} for url ${geonamesUrl})`
+          );
+        }
+        Readable.fromWeb(response.body)
+          .on('error', (err) => {
+            callback(
+              `Error downloading GeoNames ${dataName} data` +
+                (err ? ': ' + err : '')
+            );
+          })
+          .pipe(fs.createWriteStream(outputFilePath))
+          .on('finish', () => {
+            debug(`Downloaded GeoNames ${dataName} data`);
+            this._housekeepingSync(
+              outputFileFolderWithoutSlash,
+              outputFileName
+            );
+            return callback(null, outputFilePath);
+          });
+      })
+      .catch((err) => {
         callback(
           `Error downloading GeoNames ${dataName} data` +
             (err ? ': ' + err : '')
         );
-      })
-      .on('response', (response) => {
-        if (response.statusCode !== 200) {
-          callback(
-            `Error downloading GeoNames ${dataName} data (response ${response.statusCode} for url ${geonamesUrl})`
-          );
-        }
-      })
-      .pipe(fs.createWriteStream(outputFilePath))
-      .on('finish', () => {
-        debug(`Downloaded GeoNames ${dataName} data`);
-        this._housekeepingSync(outputFileFolderWithoutSlash, outputFileName);
-        return callback(null, outputFilePath);
       });
   },
 
@@ -258,72 +287,75 @@ var geocoder = {
       `Getting GeoNames ${dataName} data from ${geonamesUrl} (this may take a while)`
     );
 
-    const requestOptions = {
-      url: geonamesUrl,
-      encoding: null,
-    }
-
-    const maybeHttpsOptions = this._getHttpsOptions()
-    console.log(`_downloadAndExtractFileFromZip - ${geonamesUrl} - rejectUnauthorized - ${maybeHttpsOptions?.rejectUnauthorized}`)
-    if (maybeHttpsOptions !== null && maybeHttpsOptions !== undefined) {
-      requestOptions['rejectUnauthorized'] = maybeHttpsOptions.rejectUnauthorized
-    }
+    const dispatcher = this._getDispatcher();
+    const fetchOptions = dispatcher ? { dispatcher: dispatcher } : undefined;
 
     let foundFiles = 0;
-    request(requestOptions)
-      .on('error', (err) => {
+    fetch(geonamesUrl, fetchOptions)
+      .then((response) => {
+        if (!response.ok) {
+          return callback(
+            `Error downloading GeoNames ${dataName} data (response ${response.status} for url ${geonamesUrl})`
+          );
+        }
+        Readable.fromWeb(response.body)
+          .on('error', (err) => {
+            callback(
+              `Error downloading GeoNames ${dataName} data` +
+                (err ? ': ' + err : '')
+            );
+          })
+          .pipe(unzip.Parse())
+          .on('entry', (entry) => {
+            var entryPath = entry.path;
+            var entryType = entry.type; // 'Directory' or 'File'
+            var entrySize = entry.size; // might be undefined in some archives
+            if (entryType === 'File' && entryPath === fileNameInsideZip) {
+              debug(
+                `Unzipping GeoNames ${dataName} data - found ${entryType} ${entryPath}` +
+                  (typeof entrySize === 'number' ? ` (${entrySize} B)` : '')
+              );
+              foundFiles++;
+              entry
+                .pipe(fs.createWriteStream(outputFilePath))
+                .on('finish', () => {
+                  debug(`- unzipped GeoNames ${dataName} data - ${entryPath}`);
+                  this._housekeepingSync(
+                    outputFileFolderWithoutSlash,
+                    outputFileName
+                  );
+                  // file is now written, call callback
+                  return callback(null, outputFilePath);
+                });
+            } else {
+              debug(
+                `Unzipping GeoNames ${dataName} data - ignoring ${entryType} ${entryPath}`
+              );
+              entry.autodrain();
+            }
+          })
+          .on('finish', () => {
+            // beware - this event is a finish of unzip, finish event of writeStream may and will happen later ...
+            if (foundFiles === 1) {
+              // ... so if we found one file, we call callback in it's finish event above
+              debug(`Unzipped GeoNames ${dataName} data.`);
+              // return callback(null, outputFilePath);
+            } else {
+              // .. while if there is something unexpected, we fire callback here
+              debug(
+                `Error unzipping ${geonamesZipFilename}: Was expecting ${outputFileName}, found ${foundFiles} file(s).`
+              );
+              return callback(
+                `Was expecting ${outputFileName}, found ${foundFiles} file(s).`
+              );
+            }
+          });
+      })
+      .catch((err) => {
         callback(
           `Error downloading GeoNames ${dataName} data` +
             (err ? ': ' + err : '')
         );
-      })
-      .on('response', (response) => {
-        if (response.statusCode !== 200) {
-          callback('Error downloading GeoNames ${dataName} data');
-        }
-      })
-      .pipe(unzip.Parse())
-      .on('entry', (entry) => {
-        var entryPath = entry.path;
-        var entryType = entry.type; // 'Directory' or 'File'
-        var entrySize = entry.size; // might be undefined in some archives
-        if (entryType === 'File' && entryPath === fileNameInsideZip) {
-          debug(
-            `Unzipping GeoNames ${dataName} data - found ${entryType} ${entryPath}` +
-              (typeof entrySize === 'number' ? ` (${entrySize} B)` : '')
-          );
-          foundFiles++;
-          entry.pipe(fs.createWriteStream(outputFilePath)).on('finish', () => {
-            debug(`- unzipped GeoNames ${dataName} data - ${entryPath}`);
-            this._housekeepingSync(
-              outputFileFolderWithoutSlash,
-              outputFileName
-            );
-            // file is now written, call callback
-            return callback(null, outputFilePath);
-          });
-        } else {
-          debug(
-            `Unzipping GeoNames ${dataName} data - ignoring ${entryType} ${entryPath}`
-          );
-          entry.autodrain();
-        }
-      })
-      .on('finish', () => {
-        // beware - this event is a finish of unzip, finish event of writeStream may and will happen later ...
-        if (foundFiles === 1) {
-          // ... so if we found one file, we call callback in it's finish event above
-          debug(`Unzipped GeoNames ${dataName} data.`);
-          // return callback(null, outputFilePath);
-        } else {
-          // .. while if there is something unexpected, we fire callback here
-          debug(
-            `Error unzipping ${geonamesZipFilename}: Was expecting ${outputFileName}, found ${foundFiles} file(s).`
-          );
-          return callback(
-            `Was expecting ${outputFileName}, found ${foundFiles} file(s).`
-          );
-        }
       });
   },
 

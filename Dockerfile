@@ -28,6 +28,12 @@ RUN curl -L -o ${GEONAMES_DUMP_DIR}/admin1_codes/admin1CodesASCII.txt https://do
 COPY package.json package-lock.json postinstall.js app.js index.js ./
 RUN npm install
 
+# Guard: the deprecated `request` library must never be (re)installed.
+RUN if [ -e node_modules/request/package.json ]; then \
+      echo 'ERROR: forbidden dependency "request" is present in node_modules' >&2; \
+      exit 1; \
+    fi
+
 FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.21-fips-2025.05.15 AS runner
 
 WORKDIR /usr/src/app
