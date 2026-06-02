@@ -44,11 +44,11 @@ outbound connectivity:
 - `NODE_EXTRA_CA_CERTS`: path to a PEM file with additional trusted CA
   certificates. This is read by Node at startup and applies globally to `fetch`.
   Preferred way to trust a private/inspection CA.
-- `GEOCODER_CA_FILE`: optional path to a PEM CA file applied specifically to the
-  GeoNames downloads (useful when you cannot set `NODE_EXTRA_CA_CERTS`).
+- `GEOCODER_CA_FILE`: optional path to a PEM CA file. The CA is trusted *in
+  addition to* the public root certificates for the GeoNames downloads (useful
+  when you cannot set `NODE_EXTRA_CA_CERTS`).
 - `SHOULD_REJECT_UNAUTHORIZED`: set to `false` to disable TLS certificate
   validation for the downloads (last-resort fallback; prefer a custom CA).
-- `GEONAMES_URL`: override the GeoNames base URL (e.g. for a mirror or tests).
 
 ## Usage in Node.js
 

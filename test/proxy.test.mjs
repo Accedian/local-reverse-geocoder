@@ -24,8 +24,8 @@ const origin = await startHttpOrigin({
 });
 const proxy = await startProxy();
 
-process.env.GEONAMES_URL = origin.baseUrl;
 const { default: geocoder } = await import('../index.js');
+geocoder._geoNamesUrl = origin.baseUrl;
 
 let tmpDir;
 const savedEnv = {};

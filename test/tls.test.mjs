@@ -31,9 +31,11 @@ if (tls) {
     },
     tls
   );
-  process.env.GEONAMES_URL = origin.baseUrl;
 }
 const { default: geocoder } = await import('../index.js');
+if (origin) {
+  geocoder._geoNamesUrl = origin.baseUrl;
+}
 
 let tmpDir;
 const savedEnv = {};

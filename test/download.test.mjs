@@ -42,8 +42,8 @@ const origin = await startHttpOrigin({
   },
 });
 
-process.env.GEONAMES_URL = origin.baseUrl;
 const { default: geocoder } = await import('../index.js');
+geocoder._geoNamesUrl = origin.baseUrl;
 
 let tmpDir;
 before(() => {

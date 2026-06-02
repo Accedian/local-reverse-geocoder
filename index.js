@@ -42,12 +42,11 @@ var async = require('async');
 var readline = require('readline');
 const { basename } = require('path');
 const { Readable } = require('node:stream');
+const tls = require('node:tls');
 const { EnvHttpProxyAgent, Agent } = require('undici');
 
 // All data from http://download.geonames.org/export/dump/
-// The base URL can be overridden (e.g. for testing or mirrors) via GEONAMES_URL.
-var GEONAMES_URL =
-  process.env.GEONAMES_URL || 'https://download.geonames.org/export/dump/';
+var GEONAMES_URL = 'https://download.geonames.org/export/dump/';
 
 var CITIES_FILES = ['cities500', 'cities1000', 'cities5000', 'cities15000'];
 var CITIES_FILE = 'cities1000';
@@ -197,7 +196,10 @@ var geocoder = {
 
     const caFile = process.env.GEOCODER_CA_FILE;
     if (caFile) {
-      connect.ca = fs.readFileSync(caFile);
+      // Append to (not replace) the default trust store, so a custom/private CA
+      // is trusted in addition to the public roots. This avoids the footgun of
+      // narrowing trust and nudging operators toward disabling validation.
+      connect.ca = [...tls.rootCertificates, fs.readFileSync(caFile, 'utf8')];
     }
 
     const hasConnectOptions = Object.keys(connect).length > 0;
@@ -230,7 +232,9 @@ var geocoder = {
     outputFileName,
     callback
   ) {
-    const geonamesUrl = `${GEONAMES_URL}${geonamesZipFilename}`;
+    const geonamesUrl = `${
+      this._geoNamesUrl || GEONAMES_URL
+    }${geonamesZipFilename}`;
     const outputFilePath = `${outputFileFolderWithoutSlash}/${outputFileName}`;
 
     debug(
@@ -280,7 +284,9 @@ var geocoder = {
     outputFileName,
     callback
   ) {
-    const geonamesUrl = `${GEONAMES_URL}${geonamesZipFilename}`;
+    const geonamesUrl = `${
+      this._geoNamesUrl || GEONAMES_URL
+    }${geonamesZipFilename}`;
     const outputFilePath = `${outputFileFolderWithoutSlash}/${outputFileName}`;
 
     debug(
