@@ -24,7 +24,7 @@ jobs:
               fi
               export DOCKER_VER="${RELEASE_BASE}-${NEXT_PATCH}"
             else
-              LATEST_TAG=$(git tag -l '[0-9]*' --sort=-v:refversion | head -1)
+              LATEST_TAG=$(git tag -l --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
               if [ -z "${LATEST_TAG}" ]; then
                 export DOCKER_VER="1.0.0"
               else

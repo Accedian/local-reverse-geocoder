@@ -17,10 +17,10 @@ env:
   GEOCODER_CA_FILE: ""
   SHOULD_REJECT_UNAUTHORIZED: ""
 
-resources:
-  requests:
-    cpu: 1
-    memory: 5Gi
-  limits:
-    cpu: 1
-    memory: 5Gi
+resources: {}
+  # requests:
+  #   cpu: 1
+  #   memory: 5Gi
+  # limits:
+  #   cpu: 1
+  #   memory: 5Gi
