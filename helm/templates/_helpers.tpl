@@ -7,8 +7,6 @@ Expand the name of the chart.
 
 {{/*
 Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
 */}}
 {{- define "weld-reverse-geocoder.fullname" -}}
 {{- if .Values.fullnameOverride }}
@@ -24,17 +22,10 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "weld-reverse-geocoder.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 Common labels
 */}}
 {{- define "weld-reverse-geocoder.labels" -}}
-helm.sh/chart: {{ include "weld-reverse-geocoder.chart" . }}
+helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{ include "weld-reverse-geocoder.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -48,15 +39,4 @@ Selector labels
 {{- define "weld-reverse-geocoder.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "weld-reverse-geocoder.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "weld-reverse-geocoder.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "weld-reverse-geocoder.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
 {{- end }}

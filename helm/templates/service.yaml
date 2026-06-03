@@ -1,15 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: weld-reverse-geocoder
+  name: {{ include "weld-reverse-geocoder.fullname" . }}
   labels:
-    app: weld-reverse-geocoder
+    {{- include "weld-reverse-geocoder.labels" . | nindent 4 }}
 spec:
   selector:
-    app: weld-reverse-geocoder
+    {{- include "weld-reverse-geocoder.selectorLabels" . | nindent 4 }}
   type: ClusterIP
   ports:
-    - name: weld-reverse-geocoder
-      port: 3000
-      targetPort:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
       protocol: TCP

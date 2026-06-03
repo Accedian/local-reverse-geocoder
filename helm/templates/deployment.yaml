@@ -1,49 +1,53 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    reloader.stakater.com/auto: "true"
-  name: weld-reverse-geocoder
+  name: {{ include "weld-reverse-geocoder.fullname" . }}
   labels:
-    app: weld-reverse-geocoder
+    {{- include "weld-reverse-geocoder.labels" . | nindent 4 }}
 spec:
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: weld-reverse-geocoder
-  replicas: {{ .Values.replicaCount }}
+      {{- include "weld-reverse-geocoder.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: weld-reverse-geocoder
+        {{- include "weld-reverse-geocoder.selectorLabels" . | nindent 8 }}
     spec:
-      imagePullSecrets: {{ toYaml .Values.global.images.pullSecrets | nindent 14 }}
-    {{- if eq .Values.global.deployment_type "dev" }}
-      nodeSelector:
-        size: dev-pool
-    {{- end }}
-    {{- if eq .Values.global.deployment_type "dev" }}
-      tolerations:
-      - effect: NoSchedule
-        key: dedicated
-        operator: Equal
-        value: devpool
-    {{- end }}
       containers:
-      - name: weld-reverse-geocoder
-        image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        resources:
-          {{- toYaml .Values.resources | nindent 12 }}
-        envFrom:
-          - configMapRef:
-              name: weld-reverse-geocoder-cfg
-        ports:
-        - containerPort: 3000
-          name: weld-reverse-geocoder
-          protocol: TCP
-        volumeMounts:
-          - name: weld-reverse-geocoder-volume
-            mountPath: /weld-reverse-geocoder-volume
-            subPath: weld-reverse-geocoder-volume
-      volumes:
-        - name: weld-reverse-geocoder-volume
+        - name: weld-reverse-geocoder
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NODE_ENV
+              value: "production"
+            {{- if .Values.env.HTTP_PROXY }}
+            - name: HTTP_PROXY
+              value: {{ .Values.env.HTTP_PROXY | quote }}
+            {{- end }}
+            {{- if .Values.env.HTTPS_PROXY }}
+            - name: HTTPS_PROXY
+              value: {{ .Values.env.HTTPS_PROXY | quote }}
+            {{- end }}
+            {{- if .Values.env.NO_PROXY }}
+            - name: NO_PROXY
+              value: {{ .Values.env.NO_PROXY | quote }}
+            {{- end }}
+            {{- if .Values.env.NODE_EXTRA_CA_CERTS }}
+            - name: NODE_EXTRA_CA_CERTS
+              value: {{ .Values.env.NODE_EXTRA_CA_CERTS | quote }}
+            {{- end }}
+            {{- if .Values.env.GEOCODER_CA_FILE }}
+            - name: GEOCODER_CA_FILE
+              value: {{ .Values.env.GEOCODER_CA_FILE | quote }}
+            {{- end }}
+            {{- if .Values.env.SHOULD_REJECT_UNAUTHORIZED }}
+            - name: SHOULD_REJECT_UNAUTHORIZED
+              value: {{ .Values.env.SHOULD_REJECT_UNAUTHORIZED | quote }}
+            {{- end }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

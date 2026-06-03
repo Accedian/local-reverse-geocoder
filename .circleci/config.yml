@@ -1,0 +1,101 @@
+version: 2.1
+orbs:
+  pca-bes: accedian/pca-bes@1
+jobs:
+  build_and_release:
+    machine: true
+    resource_class: accedian/prod_bes-ubuntu24-medium
+    steps:
+      - pca-bes/workspacesetup
+      - run:
+          name: "Determine version from git tags"
+          command: |
+            git fetch --tags
+
+            if [[ ${CIRCLE_BRANCH} =~ release/* ]]; then
+              RELEASE_BASE="${CIRCLE_BRANCH#release/}"
+              EXISTING_TAGS=$(git tag -l "${RELEASE_BASE}-*" | sort -t'-' -k2 -n || true)
+
+              if [ -z "${EXISTING_TAGS}" ]; then
+                NEXT_PATCH=1
+              else
+                CURRENT_PATCH=$(echo "${EXISTING_TAGS}" | tail -1 | awk -F'-' '{print $NF}')
+                NEXT_PATCH=$((CURRENT_PATCH + 1))
+              fi
+              export DOCKER_VER="${RELEASE_BASE}-${NEXT_PATCH}"
+            else
+              LATEST_TAG=$(git tag -l '[0-9]*' --sort=-v:refversion | head -1)
+              if [ -z "${LATEST_TAG}" ]; then
+                export DOCKER_VER="1.0.0"
+              else
+                VER="${LATEST_TAG}"
+                MAJOR=$(echo "${VER}" | cut -d. -f1)
+                MINOR=$(echo "${VER}" | cut -d. -f2)
+                PATCH=$(echo "${VER}" | cut -d. -f3)
+                export DOCKER_VER="${MAJOR}.${MINOR}.$((PATCH + 1))"
+              fi
+            fi
+
+            echo "DOCKER_VER=${DOCKER_VER}"
+            echo "export DOCKER_VER=${DOCKER_VER}" >> "$BASH_ENV"
+            echo "${DOCKER_VER}" > service-tag.txt
+      - run:
+          name: "Install helm"
+          command: |
+            wget -LO helm.tar.gz https://get.helm.sh/helm-v3.17.2-linux-amd64.tar.gz
+            tar xf helm.tar.gz linux-amd64/helm
+            sudo mv linux-amd64/helm /usr/bin
+      - run:
+          name: "Login to Artifact Registry"
+          command: |
+            echo ${GCR_DOCKER_RW_PASSWORD} | base64 -d | docker login -u _json_key --password-stdin https://us-docker.pkg.dev
+      - run:
+          name: "Build and push Docker image + Helm chart"
+          command: |
+            export DOCKER_CLI_EXPERIMENTAL=enabled
+            docker run --rm --privileged us-docker.pkg.dev/npav-172917/docker-mirrors/tonistiigi-binfmt:qemu-v10.2.1-65 --install linux/amd64,linux/arm64/v8
+            docker buildx create --name circleBuilder 2>/dev/null || true
+            docker buildx use circleBuilder
+            make circleci-push
+            make helm-push
+      - run:
+          name: "Tag and push git version"
+          command: |
+            git config --global user.email "${CIRCLE_USERNAME}@accedian.com"
+            git config --global user.name "CircleCI"
+            git tag "${DOCKER_VER}"
+            git push --tags
+      - persist_to_workspace:
+          root: .
+          paths:
+            - service-tag.txt
+  image_signing:
+    machine: true
+    resource_class: accedian/prod_bes-ubuntu24-medium
+    working_directory: ~/repo
+    steps:
+      - pca-bes/workspacesetup:
+          swims: true
+      - attach_workspace:
+          at: .
+      - run:
+          name: "Set Makefile inputs for image signing"
+          command: |
+            echo 'export PACKAGE_PATH="."' >> "$BASH_ENV"
+            echo 'export CONTAINER_REGISTRY="weld-reverse-geocoder"' >> "$BASH_ENV"
+      - pca-bes/image_signing:
+          working_directory: "."
+workflows:
+  build:
+    jobs:
+      - build_and_release:
+          context: bes-builder-gcp-skybuilder-prd-51843
+          filters:
+            branches:
+              only:
+                - main
+                - /release\/.*/
+      - image_signing:
+          context: bes-builder-gcp-skybuilder-prd-51843
+          requires:
+            - build_and_release
