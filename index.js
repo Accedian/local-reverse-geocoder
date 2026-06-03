@@ -31,7 +31,6 @@
 
 /* global fetch */
 
-var debug = require('debug')('local-reverse-geocoder');
 var fs = require('fs');
 var path = require('path');
 var parser = require('csv-parse');
@@ -150,7 +149,7 @@ var geocoder = {
     const timestampedBasename = `${baseName}_${now}.txt`;
     const timestampedFilename = `${outputFileFolderWithoutSlash}/${timestampedBasename}`;
     if (fs.existsSync(timestampedFilename)) {
-      debug(
+      console.log(
         `Using cached GeoNames ${dataName} data from ${timestampedFilename}`
       );
       return callback(null, timestampedFilename);
@@ -158,7 +157,7 @@ var geocoder = {
 
     const filename = `${outputFileFolderWithoutSlash}/${baseName}.txt`;
     if (fs.existsSync(filename)) {
-      debug(`Using cached GeoNames ${dataName} data from ${filename}`);
+      console.log(`Using cached GeoNames ${dataName} data from ${filename}`);
       return callback(null, filename);
     }
 
@@ -242,7 +241,7 @@ var geocoder = {
     }${geonamesZipFilename}`;
     const outputFilePath = `${outputFileFolderWithoutSlash}/${outputFileName}`;
 
-    debug(
+    console.log(
       `Getting GeoNames ${dataName} data from ${geonamesUrl} (this may take a while)`
     );
 
@@ -265,7 +264,7 @@ var geocoder = {
           })
           .pipe(fs.createWriteStream(outputFilePath))
           .on('finish', () => {
-            debug(`Downloaded GeoNames ${dataName} data`);
+            console.log(`Downloaded GeoNames ${dataName} data`);
             this._housekeepingSync(
               outputFileFolderWithoutSlash,
               outputFileName
@@ -294,7 +293,7 @@ var geocoder = {
     }${geonamesZipFilename}`;
     const outputFilePath = `${outputFileFolderWithoutSlash}/${outputFileName}`;
 
-    debug(
+    console.log(
       `Getting GeoNames ${dataName} data from ${geonamesUrl} (this may take a while)`
     );
 
@@ -322,7 +321,7 @@ var geocoder = {
             var entryType = entry.type; // 'Directory' or 'File'
             var entrySize = entry.size; // might be undefined in some archives
             if (entryType === 'File' && entryPath === fileNameInsideZip) {
-              debug(
+              console.log(
                 `Unzipping GeoNames ${dataName} data - found ${entryType} ${entryPath}` +
                   (typeof entrySize === 'number' ? ` (${entrySize} B)` : '')
               );
@@ -330,7 +329,7 @@ var geocoder = {
               entry
                 .pipe(fs.createWriteStream(outputFilePath))
                 .on('finish', () => {
-                  debug(`- unzipped GeoNames ${dataName} data - ${entryPath}`);
+                  console.log(`- unzipped GeoNames ${dataName} data - ${entryPath}`);
                   this._housekeepingSync(
                     outputFileFolderWithoutSlash,
                     outputFileName
@@ -339,7 +338,7 @@ var geocoder = {
                   return callback(null, outputFilePath);
                 });
             } else {
-              debug(
+              console.log(
                 `Unzipping GeoNames ${dataName} data - ignoring ${entryType} ${entryPath}`
               );
               entry.autodrain();
@@ -349,11 +348,11 @@ var geocoder = {
             // beware - this event is a finish of unzip, finish event of writeStream may and will happen later ...
             if (foundFiles === 1) {
               // ... so if we found one file, we call callback in it's finish event above
-              debug(`Unzipped GeoNames ${dataName} data.`);
+              console.log(`Unzipped GeoNames ${dataName} data.`);
               // return callback(null, outputFilePath);
             } else {
               // .. while if there is something unexpected, we fire callback here
-              debug(
+              console.log(
                 `Error unzipping ${geonamesZipFilename}: Was expecting ${outputFileName}, found ${foundFiles} file(s).`
               );
               return callback(
@@ -544,7 +543,7 @@ var geocoder = {
   },
 
   _parseGeoNamesCitiesCsv: function (pathToCsv, callback) {
-    debug('Started parsing cities.txt (this  may take a while)');
+    console.log('Started parsing cities.txt (this  may take a while)');
     var data = [];
     var lenI = GEONAMES_COLUMNS.length;
     var that = this;
@@ -562,11 +561,11 @@ var geocoder = {
         data.push(lineObj);
       });
 
-      debug('Finished parsing cities.txt');
-      debug('Started building cities k-d tree (this may take a while)');
+      console.log('Finished parsing cities.txt');
+      console.log('Started building cities k-d tree (this may take a while)');
       var dimensions = ['latitude', 'longitude'];
       that._kdTree = kdTree.createKdTree(data, that._distanceFunc, dimensions);
-      debug('Finished building cities k-d tree');
+      console.log('Finished building cities k-d tree');
       return callback();
     });
   },
@@ -591,7 +590,7 @@ var geocoder = {
   },
 
   _parseGeoNamesCountryCsv: function (pathToCsv, callback) {
-    debug('Started parsing country file (this may take a while)');
+    console.log('Started parsing country file (this may take a while)');
     var data = [];
     var lenI = GEONAMES_COLUMNS.length;
     var that = this;
@@ -633,7 +632,7 @@ var geocoder = {
   },
 
   _parseGeoNamesAllCountriesCsv: function (pathToCsv, callback) {
-    debug('Started parsing all countries.txt (this  may take a while)');
+    console.log('Started parsing all countries.txt (this  may take a while)');
     var that = this;
     // Indexes
     var featureCodeIndex = GEONAMES_COLUMNS.indexOf('featureCode');
@@ -676,12 +675,12 @@ var geocoder = {
         }
       }
       if (counter % 100000 === 0) {
-        debug('Parsing progress all countries ' + counter);
+        console.log('Parsing progress all countries ' + counter);
       }
       counter++;
     });
     lineReader.on('close', function () {
-      debug('Finished parsing all countries.txt');
+      console.log('Finished parsing all countries.txt');
       return callback();
     });
   },
@@ -698,7 +697,7 @@ var geocoder = {
     if (CITIES_FILES.indexOf(options.citiesFileOverride) > -1) {
       // valid city file
       this._citiesFileOverride = options.citiesFileOverride;
-      debug(
+      console.log(
         `Using ${options.citiesFileOverride} as override of cities database`
       );
     }
@@ -723,7 +722,7 @@ var geocoder = {
       options.countries = [];
     }
 
-    debug(
+    console.log(
       'Initializing local reverse geocoder using dump ' +
       'directory: ' +
       GEONAMES_DUMP
@@ -853,8 +852,8 @@ var geocoder = {
             return;
           }
 
-          debug('Finished parsing countries files');
-          debug(
+          console.log('Finished parsing countries files');
+          console.log(
             'Started building k-d tree for specific countries (this may take a while)'
           );
           var dimensions = ['latitude', 'longitude'];
@@ -863,7 +862,7 @@ var geocoder = {
             that._distanceFunc,
             dimensions
           );
-          debug('Finished building k-d tree for specific countries');
+          console.log('Finished building k-d tree for specific countries');
 
           if (callback) {
             return callback();
@@ -915,7 +914,7 @@ var geocoder = {
             ? point.longitude
             : parseFloat(point.longitude),
       };
-      debug('Look-up request for point ' + JSON.stringify(point));
+      console.log('Look-up request for point ' + JSON.stringify(point));
       functions[i] = function (innerCallback) {
         var result = that._kdTree.nearest(point, maxResults);
         result.reverse();
@@ -983,7 +982,7 @@ var geocoder = {
             result[j] = result[j][0];
           }
         }
-        debug(
+        console.log(
           'Found result(s) for point ' +
           JSON.stringify(point) +
           result.map(function (subResult, i) {
@@ -1003,7 +1002,7 @@ var geocoder = {
       };
     });
     async.series(functions, function (err, results) {
-      debug('Delivering joint results');
+      console.log('Delivering joint results');
       return callback(null, results);
     });
   },
