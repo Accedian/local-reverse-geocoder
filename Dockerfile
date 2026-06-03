@@ -1,10 +1,15 @@
-FROM node:22-alpine AS build
+FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23 AS build
 
-RUN apk update && apk add --no-cache curl && apk upgrade
+RUN apk update && apk add --no-cache curl nodejs npm && apk upgrade
 
 ARG WORKDIR_BASE=/usr/src/app
 ARG GEONAMES_DUMP_DIR=${WORKDIR_BASE}/geonames_dump
 WORKDIR ${WORKDIR_BASE}
+
+COPY package.json ./
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN npm install -g corepack && corepack enable && corepack install
 
 # Create directories
 RUN mkdir -p \
@@ -25,8 +30,8 @@ RUN curl -L -o ${GEONAMES_DUMP_DIR}/admin1_codes/admin1CodesASCII.txt https://do
   unzip ${GEONAMES_DUMP_DIR}/cities1000/cities1000.zip -d ${GEONAMES_DUMP_DIR}/cities1000 && \
   rm ${GEONAMES_DUMP_DIR}/*/*.zip
 
-COPY package.json package-lock.json postinstall.js app.js index.js ./
-RUN npm ci
+COPY pnpm-lock.yaml pnpm-workspace.yaml postinstall.js app.js index.js ./
+RUN pnpm install --frozen-lockfile
 
 # Guard: the deprecated `request` library must never be (re)installed.
 RUN if [ -e node_modules/request/package.json ]; then \
@@ -34,7 +39,7 @@ RUN if [ -e node_modules/request/package.json ]; then \
       exit 1; \
     fi
 
-FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.21-fips-2025.05.15 AS runner
+FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23 AS runner
 
 WORKDIR /usr/src/app
 
@@ -61,5 +66,5 @@ RUN apk update && \
 # run as non-root user
 USER node
 EXPOSE 3000
-ENTRYPOINT ["npm"]
-CMD ["start"]
+ENTRYPOINT ["node", "--max-old-space-size=4096"]
+CMD ["app.js"]
