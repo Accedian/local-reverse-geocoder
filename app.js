@@ -70,11 +70,8 @@ app.listen(port, function () {
     },
     function (err) {
       if (err) {
-        console.error(
-          'Geocoder initialization failed.',
-          err
-        );
-        return
+        console.error('Geocoder initialization failed.', err);
+        process.exit(1);
       }
       console.log('Geocoder initialized and ready.');
       console.log('Endpoints:');
