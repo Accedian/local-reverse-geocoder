@@ -1,4 +1,5 @@
-FROM node:22-alpine AS build
+## builder : tag: "us-docker.pkg.dev/npav-172917/docker-mirrors/node:22-alpine" ##
+FROM us-docker.pkg.dev/npav-172917/docker-mirrors/node@sha256:e4bf2a82ad0a4037d28035ae71529873c069b13eb0455466ae0bc13363826e34 AS build
 
 RUN apk update && apk add --no-cache curl && apk upgrade
 
@@ -34,7 +35,8 @@ RUN if [ -e node_modules/request/package.json ]; then \
       exit 1; \
     fi
 
-FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.21-fips-2025.05.15 AS runner
+## runtime-fips : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23-fips" ##
+FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine@sha256:bc53baa5a817e931048a8207667f827ee513aec7f9a645538a13e192ccdf629c AS runner
 
 WORKDIR /usr/src/app
 
