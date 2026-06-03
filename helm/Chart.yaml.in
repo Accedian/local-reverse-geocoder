@@ -1,0 +1,6 @@
+apiVersion: v2
+name: @HELM_NAME@
+description: Local reverse geocoder based on GeoNames data
+type: application
+version: "@HELM_VER@"
+appVersion: "@HELM_VER@"

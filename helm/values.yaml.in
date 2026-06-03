@@ -1,0 +1,26 @@
+replicaCount: 1
+
+image:
+  registry: gcr.io
+  repository: npav-172917/weld-reverse-geocoder
+  tag: "@HELM_VER@"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 3000
+
+env:
+  HTTP_PROXY: ""
+  HTTPS_PROXY: ""
+  NO_PROXY: ""
+  NODE_EXTRA_CA_CERTS: ""
+  GEOCODER_CA_FILE: ""
+  SHOULD_REJECT_UNAUTHORIZED: ""
+
+resources: {}
+  # requests:
+  #   cpu: 1
+  #   memory: 5Gi
+  # limits:
+  #   cpu: 1
+  #   memory: 5Gi

@@ -41,7 +41,22 @@ try {
       },
       countries: GEOCODER_POSTINSTALL_COUNTRIES?.split(',') || [],
     },
-    function () {
+    function (err) {
+      if (err) {
+        if (GEOCODER_POSTINSTALL_FAIL_SILENTLY?.toLowerCase() === 'true') {
+          console.warn(
+            '[local-reverse-geocoder] post-install: An error occurred. Detected fail-silently flag.',
+            err
+          );
+          process.exit(0);
+        } else {
+          console.error(
+            '[local-reverse-geocoder] post-install: An error occurred.',
+            err
+          );
+          process.exit(1);
+        }
+      }
       console.info('[local-reverse-geocoder] post-install: Finished.');
       process.exit(0);
     }

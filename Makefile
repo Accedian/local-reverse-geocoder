@@ -1,46 +1,35 @@
 DOCKER_REPO_NAME := gcr.io/npav-172917/
+CONTAINER_REGISTRY := weld-reverse-geocoder
+HELM_APPLICATION_NAME := weld-reverse-geocoder
+HELM_REPO := oci://us-docker.pkg.dev/npav-172917/helm-package
 
-ifndef DOCKERFILE_TARGET
-$(error DOCKERFILE_TARGET is not set, cannot determine which Dockerfile to make)
-endif
+BUILD_PLATFORMS ?= linux/amd64
 
-ifndef CONTAINER_REGISTRY
-$(error CONTAINER_REGISTRY is not set, cannot determine where this image will be pushed)
-endif
+%.yaml: %.yaml.in .FORCE
+	@echo "# /!\ This file is generated, do not edit!" > $@
+	sed -e "s/@HELM_VER@/$(DOCKER_VER)/" -e "s/@HELM_NAME@/$(HELM_APPLICATION_NAME)/" $< >> $@
 
-PWD := $(shell pwd)
+docker:
+	docker buildx build --platform $(BUILD_PLATFORMS) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --load .
 
-UNAME := $(shell uname -m)
-LOCAL_BUILD_PLATFORM := linux/amd64
-ifeq ($(UNAME),arm64)
-	LOCAL_BUILD_PLATFORM = linux/arm64/v8
-endif
-BUILD_PLATFORMS ?= linux/amd64,linux/arm64/v8
-
-dockerbin: .FORCE
-
-docker: dockerbin
-	echo "building with $(LOCAL_BUILD_PLATFORM)"
-	docker buildx build --platform $(LOCAL_BUILD_PLATFORM) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --load --file $(DOCKERFILE_TARGET) .
-
-push: dockerbin
-	echo "building with $(BUILD_PLATFORMS)"
-	docker buildx build --platform $(BUILD_PLATFORMS) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --file $(DOCKERFILE_TARGET) --push .
+push:
+	docker buildx build --platform $(BUILD_PLATFORMS) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --push .
 
 circleci-push:
-	echo "building with $(BUILD_PLATFORMS)"
-	docker buildx build --platform $(BUILD_PLATFORMS) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --file $(DOCKERFILE_TARGET) --push .
+	docker buildx build --platform $(BUILD_PLATFORMS) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --push .
 
-circleci-docker:
-	echo "building with $(BUILD_PLATFORMS)"
-	docker buildx build --platform $(LOCAL_BUILD_PLATFORM) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(DOCKER_VER) --load --file $(DOCKERFILE_TARGET) --progress=plain --no-cache .
+helm-lint: helm/Chart.yaml helm/values.yaml
+	helm lint helm
 
-circleci-push-latest:
-	echo "building and pushing latest with $(BUILD_PLATFORMS)"
-	docker buildx build --platform $(BUILD_PLATFORMS) -t $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):latest --file $(DOCKERFILE_TARGET) --push .
+helm $(HELM_APPLICATION_NAME)-$(DOCKER_VER).tgz: .FORCE helm-lint helm/Chart.yaml helm/values.yaml
+	helm package helm
+
+helm-push: $(HELM_APPLICATION_NAME)-$(DOCKER_VER).tgz
+	helm push $< $(HELM_REPO)
+
+.PHONY: docker push circleci-push helm helm-lint helm-push clean
 
 .FORCE:
-clean:
-	rm -rf $(POST_BUILD_CLEANUP_DIR)
 
-# Make commands for targets in monorepo to reduce number of arguments
+clean:
+	rm -f helm/Chart.yaml helm/values.yaml *.tgz

@@ -1,6 +1,7 @@
 {
   "name": "local-reverse-geocoder",
   "version": "0.14.0",
+  "packageManager": "pnpm@10.17.0",
   "description": "Implements a local reverse geocoder based on GeoNames.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -30,7 +31,6 @@
   "dependencies": {
     "async": "3.2.4",
     "csv-parse": "5.3.2",
-    "debug": "4.3.4",
     "kdt": "0.1.0",
     "undici": "6.26.0",
     "unzip-stream": "0.3.1"
