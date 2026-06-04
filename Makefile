@@ -27,7 +27,10 @@ helm $(HELM_APPLICATION_NAME)-$(DOCKER_VER).tgz: .FORCE helm-lint helm/Chart.yam
 helm-push: $(HELM_APPLICATION_NAME)-$(DOCKER_VER).tgz
 	helm push $< $(HELM_REPO)
 
-.PHONY: docker push circleci-push helm helm-lint helm-push clean
+url-file:
+	echo $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(shell cat service-tag.txt) > urlname.txt
+
+.PHONY: docker push circleci-push helm helm-lint helm-push clean url-file
 
 .FORCE:
 
