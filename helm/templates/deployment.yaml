@@ -14,6 +14,7 @@ spec:
       labels:
         {{- include "weld-reverse-geocoder.selectorLabels" . | nindent 8 }}
     spec:
+      imagePullSecrets: {{ toYaml .Values.global.images.pullSecrets | nindent 14 }}
       containers:
         - name: weld-reverse-geocoder
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
