@@ -1,5 +1,9 @@
 fullnameOverride: weld-reverse-geocoder
 
+global:
+  images:
+    pullSecrets: []
+
 replicaCount: 1
 
 image:
