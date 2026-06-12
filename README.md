@@ -12,96 +12,16 @@ latitude/longitude pair, and it returns the closest city to that point.
 
 Requires **Node.js ≥ 22**.
 
-```bash
-$ pnpm add local-reverse-geocoder
-```
-
-Or, with npm:
-
-```bash
-$ npm install local-reverse-geocoder
-```
-
-## Docker
-
-For usage with [Docker](https://www.docker.com/), a Dockerfile is available in
-this project. It caches all the required files from GeoNames.
-
-To use it:
+Build and run with Docker:
 
 ```bash
 $ docker build -t local-reverse-geocoder .
 $ docker run -it -e PORT=3000 --rm local-reverse-geocoder
 ```
 
-## Usage in Node.js
+The Docker build downloads GeoNames data and pre-bakes it into the image.
 
-### Init
-
-You must initialize the geocoder prior to the first call to `lookUp()`. This
-ensures that all files are loaded into the cache prior to making the first call.
-
-```javascript
-var geocoder = require('local-reverse-geocoder');
-
-geocoder.init({}, function () {
-  // geocoder is loaded and ready to run
-});
-```
-
-Optionally `init()` allows you to specify the directory containing the pre-baked
-data file (`prebaked.v8`):
-
-```javascript
-var geocoder = require('local-reverse-geocoder');
-
-geocoder.init({ dumpDirectory: '/path/to/geonames_dump' }, function () {
-  // Ready to call lookUp
-});
-```
-
-### Look Up
-
-```javascript
-var geocoder = require('local-reverse-geocoder');
-
-// With just one point
-var point = { latitude: 42.083333, longitude: 3.1 };
-geocoder.lookUp(point, function (err, res) {
-  console.log(JSON.stringify(res, null, 2));
-});
-
-// In batch mode with many points
-var points = [
-  { latitude: 42.083333, longitude: 3.1 },
-  { latitude: 48.466667, longitude: 9.133333 },
-];
-geocoder.lookUp(points, function (err, res) {
-  console.log(JSON.stringify(res, null, 2));
-});
-
-// How many results to display at max
-var maxResults = 5;
-
-// With just one point
-var point = { latitude: 42.083333, longitude: 3.1 };
-geocoder.lookUp(point, maxResults, function (err, res) {
-  console.log(JSON.stringify(res, null, 2));
-});
-
-// In batch mode with many points
-var points = [
-  { latitude: 42.083333, longitude: 3.1 },
-  { latitude: 48.466667, longitude: 9.133333 },
-];
-geocoder.lookUp(points, maxResults, function (err, res) {
-  console.log(JSON.stringify(res, null, 2));
-});
-```
-
-## Usage of the Web Service
-
-You can use the built-in Web service by running `node app.js` as follows.
+## Usage
 
 ```bash
 $ curl "http://localhost:3000/geocode?latitude=48.466667&longitude=9.133333&latitude=42.083333&longitude=3.1&maxResults=2"
@@ -109,209 +29,43 @@ $ curl "http://localhost:3000/geocode?latitude=48.466667&longitude=9.133333&lati
 
 ## Result Format
 
-An output array that maps each point in the input array (or input object
-converted to a single-element array) to the `maxResults` closest addresses.
-
-The measurement units are used
-[as defined by GeoNames](http://www.geonames.org/export/web-services.html), for
-example, `elevation` is measured in meters. The `distance` value is dynamically
-calculated based on the
-[haversine distance](http://www.movable-type.co.uk/scripts/latlong.html) for the
-input point(s) to each of the particular results points and is measured in
-kilometers.
+An output array that maps each point in the input array to the `maxResults`
+closest addresses. The `distance` value is calculated using the
+[haversine formula](http://www.movable-type.co.uk/scripts/latlong.html) and is
+measured in kilometers.
 
 ```javascript
 [
   [
     {
-      geoNameId: '2919146',
       name: 'Gomaringen',
-      asciiName: 'Gomaringen',
-      alternateNames: null,
       latitude: '48.45349',
       longitude: '9.09582',
-      featureClass: 'P',
-      featureCode: 'PPLA4',
       countryCode: 'DE',
-      cc2: null,
       admin1Code: {
         name: 'Baden-Württemberg',
         asciiName: 'Baden-Wuerttemberg',
         geoNameId: '2953481',
       },
-      admin2Code: {
-        name: 'Tübingen Region',
-        asciiName: 'Tuebingen Region',
-        geoNameId: '3214106',
-      },
-      admin3Code: {
-        name: 'Landkreis Tübingen',
-        asciiName: 'Landkreis Tubingen',
-        geoNameId: '2820859',
-      },
-      admin4Code: {
-        name: 'Gomaringen',
-        asciiName: 'Gomaringen',
-        geoNameId: '6555939',
-      },
-      population: '8400',
-      elevation: null,
-      dem: '430',
-      timezone: 'Europe/Berlin',
-      modificationDate: '2011-04-25',
-      alternateName: {
-        de: {
-          altName: 'Gomaringen',
-          isPreferredName: true,
-          isShortName: false,
-          isColloquial: false,
-          isHistoric: false,
-        },
-      },
-      distance: 3.1302317076079285,
-    },
-    {
-      geoNameId: '2814195',
-      name: 'Wannweil',
-      asciiName: 'Wannweil',
-      alternateNames: null,
-      latitude: '48.51667',
-      longitude: '9.15',
-      featureClass: 'P',
-      featureCode: 'PPLA4',
-      countryCode: 'DE',
-      cc2: null,
-      admin1Code: {
-        name: 'Baden-Württemberg',
-        asciiName: 'Baden-Wuerttemberg',
-        geoNameId: '2953481',
-      },
-      admin2Code: {
-        name: 'Tübingen Region',
-        asciiName: 'Tuebingen Region',
-        geoNameId: '3214106',
-      },
-      admin3Code: {
-        name: 'Landkreis Reutlingen',
-        asciiName: 'Landkreis Reutlingen',
-        geoNameId: '3220792',
-      },
-      admin4Code: {
-        name: 'Wannweil',
-        asciiName: 'Wannweil',
-        geoNameId: '6555933',
-      },
-      population: '5092',
-      elevation: null,
-      dem: '320',
-      timezone: 'Europe/Berlin',
-      modificationDate: '2011-04-25',
-      distance: 5.694122211376861,
+      distance: 3.13,
     },
   ],
   [
     {
-      geoNameId: '3130634',
       name: 'Albons',
-      asciiName: 'Albons',
-      alternateNames: null,
       latitude: '42.10389',
       longitude: '3.08433',
-      featureClass: 'P',
-      featureCode: 'PPLA3',
       countryCode: 'ES',
-      cc2: null,
       admin1Code: {
         name: 'Catalonia',
         asciiName: 'Catalonia',
         geoNameId: '3336901',
       },
-      admin2Code: {
-        name: 'Província de Girona',
-        asciiName: 'Provincia de Girona',
-        geoNameId: '6355230',
-      },
-      admin3Code: {
-        name: 'Albons',
-        asciiName: 'Albons',
-        geoNameId: '6534005',
-      },
-      admin4Code: null,
-      population: '558',
-      elevation: '13',
-      dem: '18',
-      timezone: 'Europe/Madrid',
-      modificationDate: '2012-03-04',
-      distance: 2.626176210836868,
-    },
-    {
-      geoNameId: '3118799',
-      name: "la Tallada d'Empordà",
-      asciiName: "la Tallada d'Emporda",
-      alternateNames:
-        "La Tallada,la Tallada,la Tallada d'Emporda,la Tallada d'Empordà",
-      latitude: '42.0802',
-      longitude: '3.05583',
-      featureClass: 'P',
-      featureCode: 'PPLA3',
-      countryCode: 'ES',
-      cc2: null,
-      admin1Code: {
-        name: 'Catalonia',
-        asciiName: 'Catalonia',
-        geoNameId: '3336901',
-      },
-      admin2Code: {
-        name: 'Província de Girona',
-        asciiName: 'Provincia de Girona',
-        geoNameId: '6355230',
-      },
-      admin3Code: {
-        name: "la Tallada d'Empordà",
-        asciiName: "la Tallada d'Emporda",
-        geoNameId: '6534150',
-      },
-      admin4Code: null,
-      population: '0',
-      elevation: null,
-      dem: '16',
-      timezone: 'Europe/Madrid',
-      modificationDate: '2012-03-04',
-      distance: 3.6618561653699846,
+      distance: 2.63,
     },
   ],
 ];
 ```
-
-## A Word on Accuracy
-
-By design, _i.e._, due to the granularity of the available
-[GeoNames data](http://download.geonames.org/export/dump/cities1000.zip), this
-reverse geocoder is limited to city-level, so no streets or house numbers. In
-many cases this is already sufficient, but obviously your actual mileage may
-vary. If you need street-level granularity, you are better off with a service
-like Google's
-[reverse geocoding API](https://developers.google.com/maps/documentation/javascript/geocoding#ReverseGeocoding).
-(Full disclosure: the author is currently employed by Google.)
-
-## A Word on Initialization Speed
-
-When using Docker, GeoNames data is pre-baked during the image build. At
-runtime, the geocoder loads the pre-processed data in seconds rather than
-downloading and parsing ~2GB of CSV files.
-
-## A Word on Memory Usage
-
-If you run into a
-`FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory`
-issue, try running node with the
-[V8 option](https://github.com/nodejs/node/issues/7937)
-`--max-old-space-size=2000`.
-
-## A Word on Debugging
-
-To turn on debug logging add a DEBUG=local-reverse-geocoder environment variable
-on the command line.
 
 ## License
 

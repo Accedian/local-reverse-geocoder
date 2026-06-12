@@ -32,18 +32,8 @@
  */
 export type callback = () => AddressObject[];
 
-export interface InitLoadOptions {
-  admin1?: boolean;
-  admin2?: boolean;
-  admin3And4?: boolean;
-  alternateNames?: boolean;
-}
-
 export interface InitOptions {
   dumpDirectory?: string;
-  load?: InitLoadOptions;
-  citiesFileOverride?: string;
-  countries?: string[];
 }
 
 export interface PointsEntry {
@@ -51,26 +41,18 @@ export interface PointsEntry {
   longitude: number | string;
 }
 
-export interface AddressObject {
-  geoNameId: string;
+export interface Admin1Code {
   name: string;
   asciiName: string;
-  alternateNames?: string;
+  geoNameId: string;
+}
+
+export interface AddressObject {
+  name: string;
   latitude: string;
   longitude: string;
-  featureClass: string;
-  featureCode: string;
   countryCode: string;
-  cc2?: string;
-  admin1Code: string;
-  admin2Code?: string;
-  admin3Code?: string;
-  admin4Code?: string;
-  population: string;
-  elevation?: string;
-  dem: string;
-  timezone: string;
-  modificationDate?: string;
+  admin1Code: Admin1Code | string;
   distance: number;
 }
 
