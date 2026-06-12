@@ -9,10 +9,10 @@
     "lint": "jshint --exclude ./node_modules,./docs/scripts .",
     "start": "node --max-old-space-size=4096 app.js",
     "test": "node --test --test-force-exit",
+    "prebake": "node --max-old-space-size=4096 prebake.js",
     "validate:network": "node validation/validate-network.mjs",
     "build": "jsdoc -d docs index.js",
-    "prettier": "prettier --write *.{js,md,json}",
-    "postinstall": "node --max-old-space-size=4096 postinstall.js"
+    "prettier": "prettier --write *.{js,md,json}"
   },
   "keywords": [
     "geocoding",
@@ -22,7 +22,7 @@
   ],
   "files": [
     "app.js",
-    "postinstall.js",
+    "prebake.js",
     "index.js",
     "index.d.ts"
   ],
@@ -31,9 +31,7 @@
   "dependencies": {
     "async": "3.2.4",
     "csv-parse": "5.3.2",
-    "kdt": "0.1.0",
-    "undici": "6.26.0",
-    "unzip-stream": "0.3.1"
+    "kdt": "0.1.0"
   },
   "repository": {
     "type": "git",
