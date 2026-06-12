@@ -23,7 +23,7 @@ RUN curl -L -o ${GEONAMES_DUMP_DIR}/admin1_codes/admin1CodesASCII.txt https://do
   unzip ${GEONAMES_DUMP_DIR}/cities1000/cities1000.zip -d ${GEONAMES_DUMP_DIR}/cities1000 && \
   rm ${GEONAMES_DUMP_DIR}/*/*.zip
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml postinstall.js app.js index.js prebake.js ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml app.js index.js prebake.js ./
 RUN pnpm install --frozen-lockfile
 
 # Pre-bake geocoder data (build k-d tree and serialize with V8)
