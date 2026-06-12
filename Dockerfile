@@ -1,4 +1,5 @@
-FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23 AS build
+## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23" ##
+FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine@sha256:f21c908cc6786b533c7bf2a6af9589243ccbe9e355a56c76e872c64a4ae3d2d8 AS build
 
 RUN apk update && apk add --no-cache curl nodejs npm && apk upgrade
 
@@ -39,7 +40,8 @@ RUN if [ -e node_modules/request/package.json ]; then \
       exit 1; \
     fi
 
-FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23 AS runner
+## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23" ##
+FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine@sha256:f21c908cc6786b533c7bf2a6af9589243ccbe9e355a56c76e872c64a4ae3d2d8 AS runner
 
 WORKDIR /usr/src/app
 
