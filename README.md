@@ -10,7 +10,7 @@ latitude/longitude pair, and it returns the closest city to that point.
 
 ## Installation
 
-Requires **Node.js ≥ 22** (uses the built-in global `fetch` for GeoNames downloads).
+Requires **Node.js ≥ 22**.
 
 ```bash
 $ pnpm add local-reverse-geocoder
@@ -34,29 +34,6 @@ $ docker build -t local-reverse-geocoder .
 $ docker run -it -e PORT=3000 --rm local-reverse-geocoder
 ```
 
-## Network configuration (proxies & custom CAs)
-
-Data is downloaded from GeoNames using Node's built-in global `fetch`. In
-restricted or TLS-inspected networks the following environment variables control
-outbound connectivity:
-
-- `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY`: standard proxy variables. When set,
-  downloads are routed through the configured proxy (honored via undici's
-  `EnvHttpProxyAgent`). `NO_PROXY` lists hosts that bypass the proxy.
-- `NODE_EXTRA_CA_CERTS`: path to a PEM file with additional trusted CA
-  certificates. This is read by Node at startup and applies globally to `fetch`.
-  Preferred way to trust a private/inspection CA.
-- `GEOCODER_CA_FILE`: optional path to a PEM CA file. The CA is trusted *in
-  addition to* the public root certificates for the GeoNames downloads (useful
-  when you cannot set `NODE_EXTRA_CA_CERTS`).
-- `SHOULD_REJECT_UNAUTHORIZED`: set to `false` to disable TLS certificate
-  validation for the downloads (last-resort fallback; prefer a custom CA).
-
-To validate these network paths end-to-end (direct, outbound-proxy, and
-TLS-inspected/private-CA) against a local GeoNames mirror, run
-`npm run validate:network` (requires `zip` and `openssl` on `PATH`). It writes a
-pass/fail report to `validation/RESULTS.md`.
-
 ## Usage in Node.js
 
 ### Init
@@ -72,37 +49,14 @@ geocoder.init({}, function () {
 });
 ```
 
-Optionally `init()` also allows you to specify which files to load data from.
-This reduces initialization time and the runtime memory footprint of the Node.js
-process. By default all files are loaded.
+Optionally `init()` allows you to specify the directory containing the pre-baked
+data file (`prebaked.v8`):
 
 ```javascript
 var geocoder = require('local-reverse-geocoder');
 
-geocoder.init(
-  {
-    citiesFileOverride: 'cities500', // one of 'cities500', 'cities1000', 'cities5000', 'cities15000' or null to keep the default city database (cities1000)
-    load: {
-      admin1: true,
-      admin2: false,
-      admin3And4: false,
-      alternateNames: false,
-    },
-  },
-  function () {
-    // Ready to call lookUp
-  }
-);
-```
-
-Optionally `init()` allows you to specify the directory that geonames files are
-downloaded and cached in, and a specific cities database to be used.
-
-```javascript
-var geocoder = require('local-reverse-geocoder');
-
-geocoder.init({ dumpDirectory: '/tmp/geonames' }, function () {
-  // Ready to call lookUp and all files will be downloaded to /tmp/geonames
+geocoder.init({ dumpDirectory: '/path/to/geonames_dump' }, function () {
+  // Ready to call lookUp
 });
 ```
 
@@ -342,68 +296,9 @@ like Google's
 
 ## A Word on Initialization Speed
 
-The initial lookup takes quite a while, as the geocoder has to download roughly
-2GB(!) of data that it then caches locally (unzipped, this occupies about 1.3GB
-of disk space). All follow-up requests are lightning fast.
-
-### Downloading specific sets of countries
-
-To reduce the time taken to initialize the data, you can manually configure it
-to only download a specific set of countries from Geonames. Do note that when
-you add a country code into the array, it will disable the geocoder from
-downloading all ~2GB(!) worth of data and only load the specified countries'
-data. If you want to re-enable the geocoder to download all data, the countries
-array needs to be empty.
-
-#### Example of getting data for individual country
-
-```javascript
-const geocoder = require('local-reverse-geocoder');
-geocoder.init(
-  {
-    load: {
-      admin1: true,
-      admin2: true,
-      admin3And4: true,
-      alternateNames: true,
-    },
-    // Comma-separated list of country codes. An empty array means all countries.
-    countries: ['SG', 'AU'],
-  },
-  function () {
-    // Ready to call lookUp
-  }
-);
-```
-
-### Post-install script
-
-There's also the option of downloading the Geonames files via a post-install
-script.  
-The script is invoked automatically after installation, but won't download any
-files without getting at least one of the init options in an env variable.  
-The options should be specified with a `GEOCODER_POSTINSTALL_` prefix.
-
-#### Example of downloading the files via the post-install script
-
-```js
-export GEOCODER_POSTINSTALL_DUMP_DIRECTORY=/usr/src/app
-export GEOCODER_POSTINSTALL_ADMIN1=true
-export GEOCODER_POSTINSTALL_ADMIN2=true
-export GEOCODER_POSTINSTALL_COUNTRIES=SG,AU
-npm install local-reverse-geocoder
-
-// As long as the app is started within the same day
-// and uses the same options, the init call won't download any files.
-```
-
-## A Word on Data Freshness
-
-By default, the local [GeoNames dump](http://download.geonames.org/export/dump/)
-data gets refreshed each day. You can override this behavior by removing the
-timestamp from the files in the `./geonames_dump` download folder. If you don't
-need admin1, admin2, admin3, admin4 or alternate names you can turn them off in
-a manual init call and decrease load time.
+When using Docker, GeoNames data is pre-baked during the image build. At
+runtime, the geocoder loads the pre-processed data in seconds rather than
+downloading and parsing ~2GB of CSV files.
 
 ## A Word on Memory Usage
 
