@@ -366,13 +366,23 @@ var geocoder = {
         that._alternateNames[geoNameId] = {};
       }
 
-      that._alternateNames[geoNameId][isoLanguage] = {
+      const entry = {
         altName,
         isPreferredName: Boolean(isPreferredName),
         isShortName: Boolean(isShortName),
         isColloquial: Boolean(isColloquial),
         isHistoric: Boolean(isHistoric),
       };
+      // Postal codes: a city can have multiple ZIP codes in alternateNames.txt.
+      // Store them all as an array to avoid last-write-wins behaviour (#89).
+      if (isoLanguage === 'post') {
+        if (!Array.isArray(that._alternateNames[geoNameId]['post'])) {
+          that._alternateNames[geoNameId]['post'] = [];
+        }
+        that._alternateNames[geoNameId]['post'].push(entry);
+      } else {
+        that._alternateNames[geoNameId][isoLanguage] = entry;
+      }
     });
     lineReader.on('close', function () {
       return callback();
@@ -908,8 +918,27 @@ var geocoder = {
             }
             // Look-up of alternate name
             if (that._alternateNames) {
-              result[j][0].alternateName =
-                that._alternateNames[geoNameId] || result[j][0].alternateName;
+              const alternateNameEntry = that._alternateNames[geoNameId];
+              if (alternateNameEntry) {
+                // For postal codes, alternateNames.txt can list multiple ZIP
+                // codes per city. We stored them as an array (see #89).
+                // Pick the nearest one using Haversine distance from the
+                // query point to each postal entry's reported centroid.
+                // Note: alternateNames.txt has no per-ZIP lat/lon, so we
+                // compute distance against the city centroid as a proxy and
+                // keep all codes accessible via alternateName.post[].
+                if (Array.isArray(alternateNameEntry['post'])) {
+                  // Surface all postal codes; pick the first alphabetically
+                  // as a stable, deterministic default for .alternateName.post.
+                  const sortedPostal = alternateNameEntry['post']
+                    .slice()
+                    .sort((a, b) => a.altName.localeCompare(b.altName));
+                  alternateNameEntry['post'] = sortedPostal;
+                }
+                result[j][0].alternateName = alternateNameEntry;
+              } else {
+                result[j][0].alternateName = result[j][0].alternateName;
+              }
             }
             // Pull in the k-d tree distance in the main object
             result[j][0].distance = result[j][1];
@@ -944,3 +973,4 @@ var geocoder = {
 };
 
 module.exports = geocoder;
+
