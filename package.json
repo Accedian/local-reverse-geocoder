@@ -1,6 +1,7 @@
 {
   "name": "local-reverse-geocoder",
   "version": "0.14.0",
+  "private": true,
   "packageManager": "pnpm@10.17.0",
   "description": "Implements a local reverse geocoder based on GeoNames.",
   "main": "index.js",
