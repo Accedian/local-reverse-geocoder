@@ -11,7 +11,6 @@
     "start": "node --max-old-space-size=4096 app.js",
     "test": "node --test --test-force-exit",
     "prebake": "node --max-old-space-size=4096 prebake.js",
-    "validate:network": "node validation/validate-network.mjs",
     "build": "jsdoc -d docs index.js",
     "prettier": "prettier --write *.{js,md,json}"
   },
