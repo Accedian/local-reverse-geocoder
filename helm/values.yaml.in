@@ -15,18 +15,10 @@ image:
 service:
   port: 3000
 
-env:
-  HTTP_PROXY: ""
-  HTTPS_PROXY: ""
-  NO_PROXY: ""
-  NODE_EXTRA_CA_CERTS: ""
-  GEOCODER_CA_FILE: ""
-  SHOULD_REJECT_UNAUTHORIZED: ""
-
-resources: {}
-  # requests:
-  #   cpu: 1
-  #   memory: 5Gi
-  # limits:
-  #   cpu: 1
-  #   memory: 5Gi
+resources:
+  requests:
+    cpu: 100m
+    memory: 300Mi
+  limits:
+    cpu: 1
+    memory: 512Mi
