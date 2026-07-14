@@ -8,37 +8,14 @@ jobs:
     steps:
       - pca-bes/workspacesetup
       - run:
+          name: "Test release version safety"
+          command: |
+            bash .circleci/scripts/determine-version-test.sh
+      - run:
           name: "Determine version from git tags"
           command: |
             git fetch --tags
-
-            if [[ ${CIRCLE_BRANCH} =~ release/* ]]; then
-              RELEASE_BASE="${CIRCLE_BRANCH#release/}"
-              EXISTING_TAGS=$(git tag -l "${RELEASE_BASE}-*" | sort -t'-' -k2 -n || true)
-
-              if [ -z "${EXISTING_TAGS}" ]; then
-                NEXT_PATCH=1
-              else
-                CURRENT_PATCH=$(echo "${EXISTING_TAGS}" | tail -1 | awk -F'-' '{print $NF}')
-                NEXT_PATCH=$((CURRENT_PATCH + 1))
-              fi
-              export DOCKER_VER="${RELEASE_BASE}-${NEXT_PATCH}"
-            else
-              LATEST_TAG=$(git tag -l --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
-              if [ -z "${LATEST_TAG}" ]; then
-                export DOCKER_VER="1.0.0"
-              else
-                VER="${LATEST_TAG}"
-                MAJOR=$(echo "${VER}" | cut -d. -f1)
-                MINOR=$(echo "${VER}" | cut -d. -f2)
-                PATCH=$(echo "${VER}" | cut -d. -f3)
-                export DOCKER_VER="${MAJOR}.${MINOR}.$((PATCH + 1))"
-              fi
-            fi
-
-            echo "DOCKER_VER=${DOCKER_VER}"
-            echo "export DOCKER_VER=${DOCKER_VER}" >> "$BASH_ENV"
-            echo "${DOCKER_VER}" > service-tag.txt
+            bash .circleci/scripts/determine-version.sh
       - run:
           name: "Install helm"
           command: |
@@ -94,7 +71,7 @@ workflows:
             branches:
               only:
                 - main
-                - /release\/.*/
+                - /^release\/[0-9]+\.[0-9]+\.[0-9]+$/
       - image_signing:
           context: bes-builder-gcp-skybuilder-prd-51843
           requires:
