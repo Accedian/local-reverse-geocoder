@@ -10,7 +10,7 @@ WORKDIR ${WORKDIR_BASE}
 COPY package.json ./
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g corepack && corepack enable && corepack install
+RUN npm install -g corepack@0.34.7 && corepack enable && corepack install
 
 # Create directories
 RUN mkdir -p \
