@@ -10,7 +10,44 @@ WORKDIR ${WORKDIR_BASE}
 COPY package.json ./
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g corepack@0.34.7 && corepack enable && corepack install
+# Corepack bootstrap.
+#
+# Pinned to an exact version (0.34.7, published 2026-04-17) and verified against
+# a repository-owned SHA-512 before it is installed. Newer releases exist, but a
+# bump should respect the 48h cooling-off period this project applies to pnpm
+# packages via `minimumReleaseAge` in pnpm-workspace.yaml.
+#
+# --ignore-scripts matters: without it, npm executes package lifecycle scripts
+# as root during this step, which is the execution primitive LOCREVGE-0002
+# demonstrated. Corepack does not need any.
+#
+# Caveat on the digest: npm is both the artifact source and the digest source,
+# so unlike an Apache-style out-of-band checksum this is trust-on-first-use. It
+# guarantees reproducibility and detects later tampering or unpublish/republish;
+# it does not defend against a registry compromised at the time it was recorded.
+# The pnpm hop is covered separately by the +sha512 suffix on `packageManager`.
+# The version and digest are shell locals, not ARGs: an ARG can be relaxed with
+# --build-arg at build time, which is not a pin.
+#
+# The digest is compared explicitly rather than via `sha512sum -c`. This base is
+# Alpine, so sha512sum is BusyBox, which does not support GNU's --strict. An
+# explicit string comparison is unambiguous on both BusyBox and coreutils and
+# cannot be satisfied by an empty or malformed expected value.
+RUN COREPACK_VERSION=0.34.7 && \
+    COREPACK_SHA512=77938bb93361e337892bcfaef86d7429272aae71ca34d9ba36f4785cedbc159c8114c184eb448d0ab05eb492f2291f47d711821ba5362f2b30b323cd74eea4c7 && \
+    curl -fsSL --proto '=https' --tlsv1.2 -o /tmp/corepack.tgz \
+      "https://registry.npmjs.org/corepack/-/corepack-${COREPACK_VERSION}.tgz" && \
+    ACTUAL_SHA512="$(sha512sum /tmp/corepack.tgz | cut -d' ' -f1)" && \
+    if [ -z "$COREPACK_SHA512" ] || [ "$ACTUAL_SHA512" != "$COREPACK_SHA512" ]; then \
+      echo "ERROR: corepack tarball digest mismatch" >&2; \
+      echo "  expected: $COREPACK_SHA512" >&2; \
+      echo "  actual:   $ACTUAL_SHA512" >&2; \
+      exit 1; \
+    fi && \
+    npm install -g --ignore-scripts /tmp/corepack.tgz && \
+    rm /tmp/corepack.tgz && \
+    corepack enable && \
+    corepack install
 
 # Create directories
 RUN mkdir -p \
