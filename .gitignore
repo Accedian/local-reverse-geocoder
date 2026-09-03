@@ -6,3 +6,7 @@
 test/fixtures/*.pem
 # Generated validation report.
 validation/RESULTS.md
+# Generated Helm inputs and archives.
+helm/Chart.yaml
+helm/values.yaml
+*.tgz

@@ -8,7 +8,7 @@ replicaCount: 1
 
 image:
   registry: gcr.io
-  repository: npav-172917/weld-reverse-geocoder
+  repository: npav-172917/dev/weld-reverse-geocoder
   tag: "@HELM_VER@"
   pullPolicy: IfNotPresent
 
