@@ -43,7 +43,7 @@
   "homepage": "https://github.com/tomayac/local-reverse-geocoder",
   "pnpm": {
     "overrides": {
-      "body-parser@<1.20.3": "1.20.3",
+      "body-parser@<1.20.6": "1.20.6",
       "brace-expansion@<1.1.18": "1.1.18",
       "cookie@<0.7.0": "0.7.2",
       "linkify-it@<=5.0.1": "5.0.2",

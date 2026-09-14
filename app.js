@@ -2,59 +2,68 @@
 
 var express = require('express');
 var cors = require('cors');
-var app = express();
-var geocoder = require('./index.js');
-var isGeocodeInitialized = false;
 
-app.use(cors());
+function createApp(geocoder, state) {
+  var app = express();
+  var appState = state || { isGeocodeInitialized: false };
 
-app.get('/healthcheck', function (req, res) {
-  return res.status(200).send('OK');
-});
+  app.use(cors());
 
-app.get('/deep-healthcheck', function (req, res) {
-  if (isGeocodeInitialized) {
+  app.get('/healthcheck', function (req, res) {
     return res.status(200).send('OK');
-  } else {
-    return res.status(503).send('Not ready yet.');
-  }
-});
+  });
 
-app.get('/geocode', function (req, res) {
-  if (!isGeocodeInitialized) {
-    return res.status(503).send('Not ready yet.');
-  }
+  app.get('/deep-healthcheck', function (req, res) {
+    if (appState.isGeocodeInitialized) {
+      return res.status(200).send('OK');
+    } else {
+      return res.status(503).send('Not ready yet.');
+    }
+  });
 
-  var lat = req.query.latitude || false;
-  var lon = req.query.longitude || false;
-  var maxResults = req.query.maxResults || 1;
-  if (!lat || !lon) {
-    return res.status(400).send('Bad Request');
-  }
-  var points = [];
-  if (Array.isArray(lat) && Array.isArray(lon)) {
-    if (lat.length !== lon.length) {
+  app.get('/geocode', function (req, res) {
+    if (!appState.isGeocodeInitialized) {
+      return res.status(503).send('Not ready yet.');
+    }
+
+    var lat = req.query.latitude || false;
+    var lon = req.query.longitude || false;
+    var maxResults = req.query.maxResults || 1;
+    if (!lat || !lon) {
       return res.status(400).send('Bad Request');
     }
-    for (var i = 0, lenI = lat.length; i < lenI; i++) {
-      points[i] = { latitude: lat[i], longitude: lon[i] };
+    var points = [];
+    if (Array.isArray(lat) && Array.isArray(lon)) {
+      if (lat.length !== lon.length) {
+        return res.status(400).send('Bad Request');
+      }
+      for (var i = 0, lenI = lat.length; i < lenI; i++) {
+        points[i] = { latitude: lat[i], longitude: lon[i] };
+      }
+    } else {
+      points[0] = { latitude: lat, longitude: lon };
     }
-  } else {
-    points[0] = { latitude: lat, longitude: lon };
-  }
-  geocoder.lookUp(points, maxResults, function (err, addresses) {
-    if (err) {
-      return res.status(500).send(err);
-    }
-    return res.send(addresses);
+    geocoder.lookUp(points, maxResults, function (err, addresses) {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      return res.send(addresses);
+    });
   });
-});
 
-var port = Number(process.env.PORT || 3000);
-app.listen(port, function () {
-  console.log('Local reverse geocoder listening on port ' + port);
-  console.log('Initializing Geocoder…');
-  geocoder.init({}, function (err) {
+  return app;
+}
+
+function start() {
+  var geocoder = require('./index.js');
+  var state = { isGeocodeInitialized: false };
+  var port = Number(process.env.PORT || 3000);
+  var app = createApp(geocoder, state);
+
+  app.listen(port, function () {
+    console.log('Local reverse geocoder listening on port ' + port);
+    console.log('Initializing Geocoder…');
+    geocoder.init({}, function (err) {
       if (err) {
         console.error('Geocoder initialization failed.', err);
         process.exit(1);
@@ -66,9 +75,16 @@ app.listen(port, function () {
       console.log(`- http://localhost:${port}/geocode`);
       console.log('Examples:');
       console.log(
-        `- http://localhost:${port}/geocode?latitude=54.6875248&longitude=9.7617254`
+        `- http://localhost:${port}/geocode?latitude=54.6875248` +
+          '&longitude=9.7617254'
       );
-      isGeocodeInitialized = true;
-    }
-  );
-});
+      state.isGeocodeInitialized = true;
+    });
+  });
+}
+
+if (require.main === module) {
+  start();
+}
+
+module.exports = { createApp: createApp, start: start };
