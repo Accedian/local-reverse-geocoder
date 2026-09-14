@@ -54,21 +54,11 @@ var port = Number(process.env.PORT || 3000);
 app.listen(port, function () {
   console.log('Local reverse geocoder listening on port ' + port);
   console.log('Initializing Geocoder…');
-  console.log(
-    '(This may take a long time and will download ~300MB worth of data.)'
-  );
-  geocoder.init(
-    {
-      citiesFileOverride: null,
-      load: {
-        admin1: true,
-        admin2: true,
-        admin3And4: true,
-        alternateNames: true,
-      },
-      countries: [],
-    },
-    function () {
+  geocoder.init({}, function (err) {
+      if (err) {
+        console.error('Geocoder initialization failed.', err);
+        process.exit(1);
+      }
       console.log('Geocoder initialized and ready.');
       console.log('Endpoints:');
       console.log(`- http://localhost:${port}/healthcheck`);

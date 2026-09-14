@@ -2,3 +2,7 @@
 /node_modules
 /geonames_dump
 /out
+# Test certs are generated at runtime; never commit private keys.
+test/fixtures/*.pem
+# Generated validation report.
+validation/RESULTS.md

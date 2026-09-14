@@ -1,0 +1,24 @@
+fullnameOverride: weld-reverse-geocoder
+
+global:
+  images:
+    pullSecrets: []
+
+replicaCount: 1
+
+image:
+  registry: gcr.io
+  repository: npav-172917/weld-reverse-geocoder
+  tag: "@HELM_VER@"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 3000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 300Mi
+  limits:
+    cpu: 1
+    memory: 512Mi
