@@ -42,7 +42,7 @@
   },
   "homepage": "https://github.com/tomayac/local-reverse-geocoder",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "devDependencies": {
     "@types/cors": "2.8.12",
