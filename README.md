@@ -10,7 +10,7 @@ latitude/longitude pair, and it returns the closest city to that point.
 
 ## Installation
 
-Requires **Node.js ≥ 22**.
+Requires **Node.js ≥ 24**.
 
 Build and run with Docker:
 
