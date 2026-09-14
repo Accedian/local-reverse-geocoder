@@ -1,0 +1,72 @@
+version: 2.1
+orbs:
+  pca-bes: accedian/pca-bes@2.1.0
+jobs:
+  build_and_release:
+    machine: true
+    resource_class: accedian/prod_bes-ubuntu24-medium
+    steps:
+      - pca-bes/workspacesetup
+      - run:
+          name: "Test release version safety"
+          command: |
+            bash .circleci/scripts/determine-version-test.sh
+      - run:
+          name: "Determine version from git tags"
+          command: |
+            git fetch --tags
+            bash .circleci/scripts/determine-version.sh
+      - run:
+          name: "Login to Artifact Registry"
+          command: |
+            echo ${GCR_DOCKER_PASSWORD} | base64 -d | docker login -u ${GCR_DOCKER_USERNAME} --password-stdin https://us-docker.pkg.dev
+      - run:
+          name: "Build and push Docker image + Helm chart"
+          command: |
+            export DOCKER_CLI_EXPERIMENTAL=enabled
+            docker run --rm --privileged us-docker.pkg.dev/npav-172917/docker-mirrors/tonistiigi-binfmt:qemu-v10.2.1-65 --install linux/amd64,linux/arm64/v8
+            docker buildx create --name circleBuilder 2>/dev/null || true
+            docker buildx use circleBuilder
+            make circleci-push
+            make helm-push
+      - run:
+          name: "Tag and push git version"
+          command: |
+            git config --global user.email "${CIRCLE_USERNAME}@accedian.com"
+            git config --global user.name "CircleCI"
+            git tag "${DOCKER_VER}"
+            git push --tags
+      - persist_to_workspace:
+          root: .
+          paths:
+            - service-tag.txt
+  image_signing:
+    machine: true
+    resource_class: accedian/prod_bes-ubuntu24-medium
+    working_directory: ~/repo
+    steps:
+      - pca-bes/workspacesetup:
+          swims: true
+      - attach_workspace:
+          at: .
+      - run:
+          name: "Set Makefile inputs for image signing"
+          command: |
+            echo 'export PACKAGE_PATH="."' >> "$BASH_ENV"
+            echo 'export CONTAINER_REGISTRY="weld-reverse-geocoder"' >> "$BASH_ENV"
+      - pca-bes/image_signing:
+          working_directory: "."
+workflows:
+  build:
+    jobs:
+      - build_and_release:
+          context: bes-builder-gcp-skybuilder-prd-51843-rw
+          filters:
+            branches:
+              only:
+                - main
+                - /^release\/[0-9]+\.[0-9]+\.[0-9]+$/
+      - image_signing:
+          context: bes-builder-gcp-skybuilder-prd-51843-rw
+          requires:
+            - build_and_release

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "weld-reverse-geocoder.fullname" . }}
+  labels:
+    {{- include "weld-reverse-geocoder.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "weld-reverse-geocoder.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "weld-reverse-geocoder.selectorLabels" . | nindent 8 }}
+    spec:
+      imagePullSecrets: {{ toYaml .Values.global.images.pullSecrets | nindent 14 }}
+      containers:
+        - name: weld-reverse-geocoder
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NODE_ENV
+              value: "production"
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /deep-healthcheck
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
