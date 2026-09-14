@@ -1,7 +1,9 @@
-## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23" ##
-FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine@sha256:f21c908cc6786b533c7bf2a6af9589243ccbe9e355a56c76e872c64a4ae3d2d8 AS build
+# Image layer for building the application
+# If the Node.js version changes, re-mirror the image before updating this digest.
+## builder : tag: "us-docker.pkg.dev/npav-172917/docker-mirrors/node:24.18.0-alpine3.24" ##
+FROM us-docker.pkg.dev/npav-172917/docker-mirrors/node@sha256:e94306bf71a92565cc216b3ce3f1071aefad0c305d0e54e11537b66452225e43 AS build
 
-RUN apk update && apk add --no-cache curl nodejs npm && apk upgrade
+RUN apk add --no-cache curl unzip
 
 ARG WORKDIR_BASE=/usr/src/app
 ARG GEONAMES_DUMP_DIR=${WORKDIR_BASE}/geonames_dump
@@ -10,7 +12,7 @@ WORKDIR ${WORKDIR_BASE}
 COPY package.json ./
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g corepack && corepack enable && corepack install
+RUN corepack enable && corepack install
 
 # Create directories
 RUN mkdir -p \
@@ -35,8 +37,9 @@ RUN if [ -e node_modules/request/package.json ]; then \
       exit 1; \
     fi
 
-## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23" ##
-FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine@sha256:f21c908cc6786b533c7bf2a6af9589243ccbe9e355a56c76e872c64a4ae3d2d8 AS runner
+# Image layer for running the application
+## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.24-fips-2026.08.15" ##
+FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.24-fips-2026.08.15@sha256:448c800d57cb65497239ae8359bc003449bed0179d3617af22ea57f37296c741 AS runner
 
 WORKDIR /usr/src/app
 
@@ -51,9 +54,9 @@ COPY --from=build --chown=node:node /usr/src/app/app.js ./app.js
 COPY --from=build --chown=node:node /usr/src/app/index.js ./index.js
 
 RUN apk update && \
-  apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/v3.21/main nodejs npm && \
+  apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/main 'nodejs~24' npm && \
   apk add --no-cache dumb-init && \
-  apk add --no-cache openssl --repository=http://dl-cdn.alpinelinux.org/alpine/latest-stable/main && \
+  apk add --no-cache openssl --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/main && \
   apk upgrade && \
   echo "Node.js: $(node --version)" && \
   echo "Npm: $(npm --version)" && \
