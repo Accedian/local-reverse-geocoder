@@ -12,7 +12,25 @@ WORKDIR ${WORKDIR_BASE}
 COPY package.json ./
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack install
+# Install Corepack from an exact tarball and verify it before executing it.
+# The digest is kept here rather than in an ARG so --build-arg cannot relax the
+# pin. npm is only used to install the already-verified local tarball, and
+# lifecycle scripts are disabled because Corepack does not need them.
+RUN COREPACK_VERSION=0.34.7 && \
+    COREPACK_SHA512=77938bb93361e337892bcfaef86d7429272aae71ca34d9ba36f4785cedbc159c8114c184eb448d0ab05eb492f2291f47d711821ba5362f2b30b323cd74eea4c7 && \
+    curl -fsSL --proto '=https' --tlsv1.2 \
+      -o /tmp/corepack.tgz \
+      "https://registry.npmjs.org/corepack/-/corepack-${COREPACK_VERSION}.tgz" && \
+    ACTUAL_SHA512="$(sha512sum /tmp/corepack.tgz | awk '{print $1}')" && \
+    test "$ACTUAL_SHA512" = "$COREPACK_SHA512" && \
+    npm install -g --ignore-scripts /tmp/corepack.tgz && \
+    rm /tmp/corepack.tgz && \
+    corepack enable && \
+    corepack install
+
+# Corepack has already hydrated the hashed pnpm version. Do not allow it to
+# resolve another package-manager artifact later in the build.
+ENV COREPACK_ENABLE_NETWORK=0
 
 # Create directories
 RUN mkdir -p \
