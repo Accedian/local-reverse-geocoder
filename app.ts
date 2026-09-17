@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import geocoderModule, { PointsEntry } from './index.js';
 
-type Geocoder = typeof geocoderModule;
+type Geocoder = Pick<typeof geocoderModule, 'lookUp'>;
 
 interface AppState {
   isGeocodeInitialized: boolean;

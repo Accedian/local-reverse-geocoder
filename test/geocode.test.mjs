@@ -45,6 +45,7 @@ function init() {
   return new Promise((resolve, reject) => {
     geocoder.init({ dumpDirectory: dumpDir }, (err) => {
       if (err) return reject(err);
+      assert.equal(err, null);
       resolve();
     });
   });

@@ -129,7 +129,7 @@ const geocoder = {
         return;
       }
       if (callback) {
-        return callback();
+        return callback(null);
       }
     });
   },
