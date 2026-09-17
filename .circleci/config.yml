@@ -8,28 +8,6 @@ jobs:
     steps:
       - pca-bes/workspacesetup
       - run:
-          name: "Install pnpm package manager"
-          command: |
-            COREPACK_VERSION=0.34.7
-            COREPACK_SHA512=77938bb93361e337892bcfaef86d7429272aae71ca34d9ba36f4785cedbc159c8114c184eb448d0ab05eb492f2291f47d711821ba5362f2b30b323cd74eea4c7
-            curl -fsSL --proto '=https' --tlsv1.2 \
-              -o /tmp/corepack.tgz \
-              "https://registry.npmjs.org/corepack/-/corepack-${COREPACK_VERSION}.tgz"
-            ACTUAL_SHA512="$(sha512sum /tmp/corepack.tgz | awk '{print $1}')"
-            test "$ACTUAL_SHA512" = "$COREPACK_SHA512"
-            npm install --global --ignore-scripts /tmp/corepack.tgz
-            rm /tmp/corepack.tgz
-            corepack enable --install-directory ~/bin
-            corepack install
-            echo 'export PATH="$HOME/bin:$PATH"' >> "$BASH_ENV"
-            echo 'export COREPACK_ENABLE_NETWORK=0' >> "$BASH_ENV"
-      - run:
-          name: "Install dependencies"
-          command: pnpm install --frozen-lockfile --ignore-scripts
-      - run:
-          name: "Build TypeScript application entrypoint"
-          command: pnpm run build:app
-      - run:
           name: "Test release version safety"
           command: |
             bash .circleci/scripts/determine-version-test.sh
