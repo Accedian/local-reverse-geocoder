@@ -1,12 +1,15 @@
 version: 2.1
 orbs:
-  pca-bes: accedian/pca-bes@2.1.0
+  pca-bes: accedian/pca-bes@2.2.0
 jobs:
   build_and_release:
     machine: true
     resource_class: accedian/prod_bes-ubuntu24-medium
     steps:
       - pca-bes/workspacesetup
+      - run:
+          name: "Build TypeScript application entrypoint"
+          command: pnpm run build:app
       - run:
           name: "Test release version safety"
           command: |

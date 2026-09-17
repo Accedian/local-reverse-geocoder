@@ -4,15 +4,22 @@
   "private": true,
   "packageManager": "pnpm@10.17.0+sha512.fce8a3dd29a4ed2ec566fb53efbb04d8c44a0f05bc6f24a73046910fb9c3ce7afa35a0980500668fa3573345bd644644fa98338fa168235c80f4aa17aa17fbef",
   "description": "Implements a local reverse geocoder based on GeoNames.",
-  "main": "index.js",
+  "main": "dist/index.js",
   "types": "index.d.ts",
   "scripts": {
-    "lint": "jshint --exclude ./node_modules,./docs/scripts .",
-    "start": "node --max-old-space-size=4096 app.js",
+    "lint": "tsc --noEmit --project tsconfig.json && eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "prepare": "npm run build:app",
+    "prepack": "npm run build:app",
+    "prestart": "npm run build:app",
+    "start": "node --max-old-space-size=4096 dist/app.js",
+    "build:app": "tsc --project tsconfig.json",
+    "pretest": "pnpm run build:app",
     "test": "node --test --test-force-exit",
-    "prebake": "node --max-old-space-size=4096 prebake.js",
-    "build": "jsdoc -d docs index.js",
-    "prettier": "prettier --write *.{js,md,json}"
+    "preprebake": "npm run build:app",
+    "prebake": "node --max-old-space-size=4096 dist/prebake.js",
+    "prebuild": "npm run build:app",
+    "build": "jsdoc -d docs dist/index.js"
   },
   "keywords": [
     "geocoding",
@@ -21,16 +28,15 @@
     "local"
   ],
   "files": [
-    "app.js",
-    "prebake.js",
-    "index.js",
+    "src",
+    "dist",
     "index.d.ts"
   ],
   "author": "Thomas Steiner",
   "license": "Apache-2.0",
   "dependencies": {
     "async": "3.2.4",
-    "csv-parse": "5.3.2",
+    "csv-parse": "7.0.2",
     "kdt": "0.1.0"
   },
   "repository": {
@@ -41,17 +47,34 @@
     "url": "https://github.com/tomayac/local-reverse-geocoder/issues"
   },
   "homepage": "https://github.com/tomayac/local-reverse-geocoder",
+  "pnpm": {
+    "overrides": {
+      "body-parser@<1.20.6": "1.20.6",
+      "brace-expansion@<1.1.18": "1.1.18",
+      "cookie@<0.7.0": "0.7.2",
+      "linkify-it@<=5.0.1": "5.0.2",
+      "lodash@>=4.0.0 <=4.17.23": "4.18.1",
+      "markdown-it@<=14.1.1": "14.3.1",
+      "minimatch@>=3 <3.1.4": "3.1.5",
+      "path-to-regexp@<0.1.13": "0.1.13",
+      "qs@<6.16.0": "6.16.0",
+      "send@<0.19.0": "0.19.0",
+      "serve-static@<1.16.0": "1.16.2"
+    }
+  },
   "engines": {
     "node": ">=24"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/cors": "2.8.12",
     "@types/express": "4.17.14",
     "@types/node": "18.11.9",
     "cors": "2.8.5",
-    "express": "4.19.2",
+    "eslint": "10.0.1",
+    "express": "4.21.2",
     "jsdoc": "4.0.0",
-    "jshint": "2.13.6",
-    "prettier": "2.8.0"
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.0"
   }
 }

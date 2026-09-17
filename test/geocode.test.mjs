@@ -9,7 +9,7 @@ import v8 from 'node:v8';
 import zlib from 'node:zlib';
 import { makeTempDir, rmrf } from '../test-helpers/index.mjs';
 
-const { default: geocoder } = await import('../index.js');
+const { default: geocoder } = await import('../dist/index.js');
 
 let dumpDir;
 
@@ -45,6 +45,7 @@ function init() {
   return new Promise((resolve, reject) => {
     geocoder.init({ dumpDirectory: dumpDir }, (err) => {
       if (err) return reject(err);
+      assert.equal(err, null);
       resolve();
     });
   });
