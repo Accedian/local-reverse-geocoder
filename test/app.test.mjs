@@ -48,12 +48,21 @@ test('geocode route maps repeated query parameters into a batch lookup', async (
           { latitude: '10', longitude: '20' },
           { latitude: '11', longitude: '21' },
         ],
-        maxResults: '2',
+        maxResults: 2,
       },
     ]);
   } finally {
     await stopServer(server);
   }
+});
+
+test('createApp requires caller-owned initialization state', () => {
+  const geocoder = { lookUp() {} };
+
+  assert.throws(
+    () => createApp(geocoder),
+    /createApp requires a caller-owned initialization state/
+  );
 });
 
 test('geocode route passes scalar query parameters to the geocoder', async () => {

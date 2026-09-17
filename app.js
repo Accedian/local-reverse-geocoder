@@ -4,8 +4,14 @@ var express = require('express');
 var cors = require('cors');
 
 function createApp(geocoder, state) {
+  if (!state) {
+    throw new TypeError(
+      'createApp requires a caller-owned initialization state'
+    );
+  }
+
   var app = express();
-  var appState = state || { isGeocodeInitialized: false };
+  var appState = state;
 
   app.use(cors());
 
@@ -28,7 +34,7 @@ function createApp(geocoder, state) {
 
     var lat = req.query.latitude || false;
     var lon = req.query.longitude || false;
-    var maxResults = req.query.maxResults || 1;
+    var maxResults = Number(req.query.maxResults || 1);
     if (!lat || !lon) {
       return res.status(400).send('Bad Request');
     }

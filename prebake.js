@@ -148,7 +148,13 @@ function parseCities(callback) {
       data.push(lineObj);
     });
 
-    console.log(`Parsed ${data.length} cities (keeping ${CITY_FIELDS_TO_KEEP.length} fields)`);
+    console.log(
+      'Parsed ' +
+        data.length +
+        ' cities (keeping ' +
+        CITY_FIELDS_TO_KEEP.length +
+        ' fields)'
+    );
     // Return the data array - k-d tree will be built at load time
     // (k-d tree contains functions that can't be serialized with V8)
     callback(null, data);
@@ -189,8 +195,13 @@ function main() {
       fs.writeFileSync(PREBAKED_FILE, compressed);
 
       const compressedMB = (compressed.length / 1024 / 1024).toFixed(2);
-      const ratio = ((1 - compressed.length / serialized.length) * 100).toFixed(1);
-      console.log('Compressed size: ' + compressedMB + ' MB (' + ratio + '% reduction)');
+      const ratio = (
+        (1 - compressed.length / serialized.length) *
+        100
+      ).toFixed(1);
+      console.log(
+        'Compressed size: ' + compressedMB + ' MB (' + ratio + '% reduction)'
+      );
       console.log('Wrote ' + PREBAKED_FILE);
       console.log('');
       console.log('=== Prebake complete ===');

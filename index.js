@@ -164,13 +164,11 @@ const geocoder = {
     points.forEach((point, i) => {
       point = {
         latitude:
-          typeof point.latitude === 'number'
-            ? point.latitude
-            : parseFloat(point.latitude),
+          typeof point.latitude === 'number' ?
+          point.latitude : parseFloat(point.latitude),
         longitude:
-          typeof point.longitude === 'number'
-            ? point.longitude
-            : parseFloat(point.longitude),
+          typeof point.longitude === 'number' ?
+          point.longitude : parseFloat(point.longitude),
       };
       console.log('Look-up request for point ' + JSON.stringify(point));
       functions[i] = (innerCallback) => {

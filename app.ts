@@ -10,7 +10,7 @@ interface AppState {
 
 function createApp(
   geocoder: Geocoder,
-  state: AppState = { isGeocodeInitialized: false }
+  state: AppState
 ) {
   const app = express();
 
