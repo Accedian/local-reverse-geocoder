@@ -7,7 +7,7 @@
   "main": "dist/index.js",
   "types": "index.d.ts",
   "scripts": {
-    "lint": "jshint --exclude ./node_modules,./docs/scripts,./out,./dist .",
+    "lint": "tsc --noEmit --project tsconfig.json && jshint --exclude ./node_modules,./docs/scripts,./out,./dist .",
     "prepare": "npm run build:app",
     "prepack": "npm run build:app",
     "prestart": "npm run build:app",
