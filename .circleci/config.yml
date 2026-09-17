@@ -8,6 +8,16 @@ jobs:
     steps:
       - pca-bes/workspacesetup
       - run:
+          name: "Install pnpm package manager"
+          command: |
+            npm install --global corepack@0.34.0
+            corepack enable --install-directory ~/bin
+            corepack prepare pnpm@10.17.0 --activate
+            echo 'export PATH="$HOME/bin:$PATH"' >> "$BASH_ENV"
+      - run:
+          name: "Install dependencies"
+          command: pnpm install --frozen-lockfile --ignore-scripts
+      - run:
           name: "Build TypeScript application entrypoint"
           command: pnpm run build:app
       - run:
