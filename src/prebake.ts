@@ -14,7 +14,6 @@ const GEONAMES_DUMP = path.resolve(__dirname, '..', 'geonames_dump');
 const PREBAKED_FILE = path.join(GEONAMES_DUMP, 'prebaked.v8');
 
 const CITIES_FILE = 'cities1000';
-const ADMIN_1_CODES_FILE = 'admin1CodesASCII';
 
 type CityField = 'name' | 'latitude' | 'longitude' | 'countryCode' | 'admin1Code';
 

@@ -7,7 +7,8 @@
   "main": "dist/index.js",
   "types": "index.d.ts",
   "scripts": {
-    "lint": "tsc --noEmit --project tsconfig.json && jshint --exclude ./node_modules,./docs/scripts,./out,./dist .",
+    "lint": "tsc --noEmit --project tsconfig.json && eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
     "prepare": "npm run build:app",
     "prepack": "npm run build:app",
     "prestart": "npm run build:app",
@@ -18,8 +19,7 @@
     "preprebake": "npm run build:app",
     "prebake": "node --max-old-space-size=4096 dist/prebake.js",
     "prebuild": "npm run build:app",
-    "build": "jsdoc -d docs dist/index.js",
-    "prettier": "prettier --write *.{js,ts,md,json} src/**/*.{js,ts}"
+    "build": "jsdoc -d docs dist/index.js"
   },
   "keywords": [
     "geocoding",
@@ -66,14 +66,15 @@
     "node": ">=24"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/cors": "2.8.12",
     "@types/express": "4.17.14",
     "@types/node": "18.11.9",
     "cors": "2.8.5",
+    "eslint": "10.0.1",
     "express": "4.21.2",
     "jsdoc": "4.0.0",
-    "jshint": "2.13.6",
-    "prettier": "2.8.0",
-    "typescript": "7.0.2"
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.0"
   }
 }

@@ -49,7 +49,7 @@ GitHub review history here is sparse, but the repeated flags and follow-up fixes
 - Lint with `npm run lint`.
 - Run the web service with `npm start`.
 - Rebuild generated docs with `npm run build`.
-- Format root-level JS/Markdown/JSON files with `npm run prettier`.
+- Apply automatic ESLint fixes with `npm run lint:fix`.
 - The README's local Docker flow is `docker build -t local-reverse-geocoder .` followed by `docker run -it -e PORT=3000 --rm local-reverse-geocoder`.
 - [Makefile](./Makefile) supports `make docker`, `make push`, `make circleci-push`, `make helm`, `make helm-lint`, `make helm-push`, `make url-file`, and `make clean`; Docker and Helm targets require the variables documented in [Makefile](./Makefile), usually including `DOCKER_VER`.
 - Include `npm test`, `npm run lint`, and a short manual smoke-test note in PRs when behavior changes. The lowest-friction manual check is the sample `curl` request from [README.md](./README.md) against `/geocode` after startup.
@@ -58,7 +58,7 @@ GitHub review history here is sparse, but the repeated flags and follow-up fixes
 
 - Dependency manifests: [package.json](./package.json), [pnpm-lock.yaml](./pnpm-lock.yaml), and [pnpm-workspace.yaml](./pnpm-workspace.yaml)
 - Runtime libraries: `async`, `csv-parse`, and `kdt`
-- Web-service dependencies currently live in `devDependencies`: `express`, `cors`, `@types/*`, `jsdoc`, `jshint`, and `prettier`. If you touch [src/app.ts](./src/app.ts) or [Dockerfile](./Dockerfile), verify install/runtime behavior instead of assuming these stay dev-only.
+- Web-service dependencies currently live in `devDependencies`: `express`, `cors`, `@types/*`, `eslint`, `jsdoc`, and `typescript-eslint`. If you touch [src/app.ts](./src/app.ts) or [Dockerfile](./Dockerfile), verify install/runtime behavior instead of assuming these stay dev-only.
 - Runtime baseline: [package.json](./package.json) requires Node `>=24`, and [Dockerfile](./Dockerfile) uses a multi-stage Node 24 Alpine build plus a hardened Alpine 3.24 FIPS runner.
 - External services/data: GeoNames dumps from `https://download.geonames.org/export/dump/`; there is no database, message queue, or remote geocoding API in the application path.
 - Deployment targets: Google Container Registry naming is wired through [Makefile](./Makefile) and [helm/values.yaml.in](./helm/values.yaml.in), with Kubernetes packaging in [helm/](./helm/).
