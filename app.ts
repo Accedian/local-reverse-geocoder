@@ -12,7 +12,14 @@ function createApp(
   geocoder: Geocoder,
   state: AppState
 ) {
+  if (!state) {
+    throw new TypeError(
+      'createApp requires a caller-owned initialization state'
+    );
+  }
+
   const app = express();
+  app.set('query parser', 'simple');
 
   app.use(cors());
 

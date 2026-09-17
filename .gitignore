@@ -1,5 +1,7 @@
 .DS_Store
 /node_modules
+/app.js
+/dist
 /geonames_dump
 /out
 # Test certs are generated at runtime; never commit private keys.

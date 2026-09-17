@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { test } from 'node:test';
 
-import appModule from '../app.js';
+import appModule from '../dist/app.js';
 
 const { createApp } = appModule;
 
@@ -51,6 +51,38 @@ test('geocode route maps repeated query parameters into a batch lookup', async (
         maxResults: 2,
       },
     ]);
+  } finally {
+    await stopServer(server);
+  }
+});
+
+test('geocode route accepts more than 20 repeated coordinates', async () => {
+  const calls = [];
+  const geocoder = {
+    lookUp(points, maxResults, callback) {
+      calls.push({ points, maxResults });
+      callback(null, points);
+    },
+  };
+  const { server, url } = await startServer(
+    createApp(geocoder, { isGeocodeInitialized: true })
+  );
+  const query = new URLSearchParams();
+  const expectedPoints = [];
+
+  for (let i = 0; i < 21; i++) {
+    const point = { latitude: String(10 + i), longitude: String(20 + i) };
+    expectedPoints.push(point);
+    query.append('latitude', point.latitude);
+    query.append('longitude', point.longitude);
+  }
+
+  try {
+    const response = await fetch(`${url}/geocode?${query}`);
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), expectedPoints);
+    assert.deepEqual(calls, [{ points: expectedPoints, maxResults: 1 }]);
   } finally {
     await stopServer(server);
   }

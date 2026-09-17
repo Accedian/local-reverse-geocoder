@@ -43,8 +43,9 @@ RUN curl -L -o ${GEONAMES_DUMP_DIR}/admin1_codes/admin1CodesASCII.txt https://do
   unzip ${GEONAMES_DUMP_DIR}/cities1000/cities1000.zip -d ${GEONAMES_DUMP_DIR}/cities1000 && \
   rm ${GEONAMES_DUMP_DIR}/*/*.zip
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml app.js index.js prebake.js ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml app.ts index.js index.d.ts prebake.js tsconfig.json ./
 RUN pnpm install --frozen-lockfile
+RUN pnpm run build:app
 
 # Pre-bake geocoder data (build k-d tree and serialize with V8)
 RUN node --max-old-space-size=4096 prebake.js
@@ -66,10 +67,10 @@ RUN addgroup -S node && \
   chown -R node:node /usr/src/app
 
 COPY --from=build --chown=node:node /usr/src/app/node_modules ./node_modules
-COPY --from=build --chown=node:node /usr/src/app/geonames_dump/prebaked.v8 ./geonames_dump/prebaked.v8
+COPY --from=build --chown=node:node /usr/src/app/geonames_dump/prebaked.v8 ./dist/geonames_dump/prebaked.v8
 COPY --from=build --chown=node:node /usr/src/app/package.json ./package.json
-COPY --from=build --chown=node:node /usr/src/app/app.js ./app.js
-COPY --from=build --chown=node:node /usr/src/app/index.js ./index.js
+COPY --from=build --chown=node:node /usr/src/app/dist/app.js ./dist/app.js
+COPY --from=build --chown=node:node /usr/src/app/dist/index.js ./dist/index.js
 
 RUN apk update && \
   apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/main 'nodejs~24' npm && \
@@ -85,4 +86,4 @@ RUN apk update && \
 USER node
 EXPOSE 3000
 ENTRYPOINT ["node", "--max-old-space-size=4096"]
-CMD ["app.js"]
+CMD ["dist/app.js"]

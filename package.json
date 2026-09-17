@@ -7,8 +7,10 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "lint": "jshint --exclude ./node_modules,./docs/scripts .",
-    "start": "node --max-old-space-size=4096 app.js",
+    "lint": "jshint --exclude ./node_modules,./docs/scripts,./out,./dist .",
+    "start": "node --max-old-space-size=4096 dist/app.js",
+    "build:app": "tsc --project tsconfig.json",
+    "pretest": "pnpm run build:app",
     "test": "node --test --test-force-exit",
     "prebake": "node --max-old-space-size=4096 prebake.js",
     "build": "jsdoc -d docs index.js",
@@ -21,7 +23,8 @@
     "local"
   ],
   "files": [
-    "app.js",
+    "app.ts",
+    "dist",
     "prebake.js",
     "index.js",
     "index.d.ts"
@@ -67,6 +70,7 @@
     "express": "4.21.2",
     "jsdoc": "4.0.0",
     "jshint": "2.13.6",
-    "prettier": "2.8.0"
+    "prettier": "2.8.0",
+    "typescript": "7.0.2"
   }
 }
