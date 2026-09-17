@@ -43,12 +43,13 @@ RUN curl -L -o ${GEONAMES_DUMP_DIR}/admin1_codes/admin1CodesASCII.txt https://do
   unzip ${GEONAMES_DUMP_DIR}/cities1000/cities1000.zip -d ${GEONAMES_DUMP_DIR}/cities1000 && \
   rm ${GEONAMES_DUMP_DIR}/*/*.zip
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml app.ts index.js index.d.ts prebake.js tsconfig.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
+COPY src ./src/
 RUN pnpm install --frozen-lockfile
 RUN pnpm run build:app
 
 # Pre-bake geocoder data (build k-d tree and serialize with V8)
-RUN node --max-old-space-size=4096 prebake.js
+RUN pnpm run prebake
 
 # Guard: the deprecated `request` library must never be (re)installed.
 RUN if [ -e node_modules/request/package.json ]; then \
@@ -67,7 +68,7 @@ RUN addgroup -S node && \
   chown -R node:node /usr/src/app
 
 COPY --from=build --chown=node:node /usr/src/app/node_modules ./node_modules
-COPY --from=build --chown=node:node /usr/src/app/geonames_dump/prebaked.v8 ./dist/geonames_dump/prebaked.v8
+COPY --from=build --chown=node:node /usr/src/app/geonames_dump/prebaked.v8 ./geonames_dump/prebaked.v8
 COPY --from=build --chown=node:node /usr/src/app/package.json ./package.json
 COPY --from=build --chown=node:node /usr/src/app/dist/app.js ./dist/app.js
 COPY --from=build --chown=node:node /usr/src/app/dist/index.js ./dist/index.js

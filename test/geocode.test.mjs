@@ -9,7 +9,7 @@ import v8 from 'node:v8';
 import zlib from 'node:zlib';
 import { makeTempDir, rmrf } from '../test-helpers/index.mjs';
 
-const { default: geocoder } = await import('../index.js');
+const { default: geocoder } = await import('../dist/index.js');
 
 let dumpDir;
 

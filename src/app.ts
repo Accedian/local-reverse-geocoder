@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
-import geocoderModule, { PointsEntry } from './index.js';
+import geocoderModule = require('./index.js');
+import type { PointsEntry } from './types.js';
 
 type Geocoder = Pick<typeof geocoderModule, 'lookUp'>;
 
