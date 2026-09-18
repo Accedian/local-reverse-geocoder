@@ -1,7 +1,7 @@
 ## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.23" ##
 FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine@sha256:f21c908cc6786b533c7bf2a6af9589243ccbe9e355a56c76e872c64a4ae3d2d8 AS build
 
-RUN apk update && apk add --no-cache curl nodejs npm && apk upgrade
+RUN apk update && apk add --no-cache curl nodejs npm corepack && apk upgrade
 
 ARG WORKDIR_BASE=/usr/src/app
 ARG GEONAMES_DUMP_DIR=${WORKDIR_BASE}/geonames_dump
@@ -10,7 +10,7 @@ WORKDIR ${WORKDIR_BASE}
 COPY package.json ./
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN npm install -g corepack && corepack enable && corepack install
+RUN corepack enable && corepack install
 
 # Create directories
 RUN mkdir -p \
