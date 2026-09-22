@@ -45,7 +45,7 @@ RUN curl -L -o ${GEONAMES_DUMP_DIR}/admin1_codes/admin1CodesASCII.txt https://do
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
 COPY src ./src/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --prod=false
 RUN pnpm run build:app
 
 # Pre-bake geocoder data (build k-d tree and serialize with V8)
@@ -57,6 +57,17 @@ RUN if [ -e node_modules/request/package.json ]; then \
       exit 1; \
     fi
 
+# Construct a portable production dependency tree after compilation and
+# prebaking. Build-only TypeScript, lint, documentation, and type packages stay
+# in the builder stage.
+RUN pnpm --filter=local-reverse-geocoder --prod deploy --legacy --ignore-scripts /usr/src/app/deploy
+
+RUN test -e /usr/src/app/deploy/node_modules/express/package.json && \
+    test -e /usr/src/app/deploy/node_modules/cors/package.json && \
+    test ! -e /usr/src/app/deploy/node_modules/typescript/package.json && \
+    test ! -e /usr/src/app/deploy/node_modules/typescript-eslint/package.json && \
+    test ! -e /usr/src/app/deploy/node_modules/@types
+
 # Image layer for running the application
 ## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.24-fips-2026.08.15" ##
 FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.24-fips-2026.08.15@sha256:448c800d57cb65497239ae8359bc003449bed0179d3617af22ea57f37296c741 AS runner
@@ -67,19 +78,18 @@ RUN addgroup -S node && \
   adduser -S node -G node && \
   chown -R node:node /usr/src/app
 
-COPY --from=build --chown=node:node /usr/src/app/node_modules ./node_modules
+COPY --from=build --chown=node:node /usr/src/app/deploy/node_modules ./node_modules
 COPY --from=build --chown=node:node /usr/src/app/geonames_dump/prebaked.v8 ./geonames_dump/prebaked.v8
-COPY --from=build --chown=node:node /usr/src/app/package.json ./package.json
-COPY --from=build --chown=node:node /usr/src/app/dist/app.js ./dist/app.js
-COPY --from=build --chown=node:node /usr/src/app/dist/index.js ./dist/index.js
+COPY --from=build --chown=node:node /usr/src/app/deploy/package.json ./package.json
+COPY --from=build --chown=node:node /usr/src/app/deploy/dist/app.js ./dist/app.js
+COPY --from=build --chown=node:node /usr/src/app/deploy/dist/index.js ./dist/index.js
 
 RUN apk update && \
-  apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/main 'nodejs~24' npm && \
+  apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/main 'nodejs~24' && \
   apk add --no-cache dumb-init && \
   apk add --no-cache openssl --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/main && \
   apk upgrade && \
   echo "Node.js: $(node --version)" && \
-  echo "Npm: $(npm --version)" && \
   echo "OpenSSL: $(openssl version)" && \
   rm -rf /var/cache/apk/*
 
