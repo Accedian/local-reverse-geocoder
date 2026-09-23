@@ -28,7 +28,20 @@ helm-push: $(HELM_APPLICATION_NAME)-$(DOCKER_VER).tgz
 	helm push $< $(HELM_REPO)
 
 url-file:
-	echo $(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY):$(shell cat service-tag.txt) > urlname.txt
+	@set -eu; \
+	service_tag="$$(cat service-tag.txt)"; \
+	tag_length="$$(printf '%s' "$$service_tag" | wc -c)"; \
+	case "$$service_tag" in \
+		''|[-.]*|*[!A-Za-z0-9_.-]*) \
+			printf '%s\n' 'service-tag.txt must contain a valid Docker tag' >&2; \
+			exit 1; \
+		;; \
+	esac; \
+	if [ "$$tag_length" -gt 128 ]; then \
+		printf '%s\n' 'service-tag.txt must contain a valid Docker tag' >&2; \
+		exit 1; \
+	fi; \
+	printf '%s:%s\n' "$(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY)" "$$service_tag" > urlname.txt
 
 .PHONY: docker push circleci-push helm helm-lint helm-push clean url-file
 

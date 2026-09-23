@@ -8,6 +8,10 @@ jobs:
     steps:
       - pca-bes/workspacesetup
       - run:
+          name: "Test image URL file safety"
+          command: |
+            bash .circleci/scripts/url-file-test.sh
+      - run:
           name: "Test release version safety"
           command: |
             bash .circleci/scripts/determine-version-test.sh
