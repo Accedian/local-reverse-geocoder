@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  pca-bes: accedian/pca-bes@2.2.0
+  pca-bes: accedian/pca-bes@2
 jobs:
   build_and_release:
     machine: true
