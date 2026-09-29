@@ -1,6 +1,6 @@
 /.circleci/** @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
 /.github/** @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
-/agents.md @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/AGENTS.md @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
 /CHANGELOG.md @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
 /Dockerfile @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
 /Makefile @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops

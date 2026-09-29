@@ -29,7 +29,7 @@ helm-push: $(HELM_APPLICATION_NAME)-$(DOCKER_VER).tgz
 
 url-file:
 	@tag=$$(cat service-tag.txt); \
-	printf '%s\n' "$$tag" | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$$' || { \
+	printf '%s\n' "$tag" | awk 'NR == 1 && $$0 ~ /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$$/ { valid=1 } END { exit !(valid && NR == 1) }' || { \
 		echo "Invalid Docker tag in service-tag.txt" >&2; exit 1; \
 	}; \
 	printf '%s:%s\n' "$(DOCKER_REPO_NAME)$(CONTAINER_REGISTRY)" "$$tag" > urlname.txt
