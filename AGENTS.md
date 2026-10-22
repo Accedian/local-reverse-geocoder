@@ -60,5 +60,7 @@ GitHub review history here is sparse, but the repeated flags and follow-up fixes
 - Runtime libraries: `async`, `csv-parse`, and `kdt`
 - Web-service dependencies currently live in `devDependencies`: `express`, `cors`, `@types/*`, `eslint`, `jsdoc`, and `typescript-eslint`. If you touch [src/app.ts](./src/app.ts) or [Dockerfile](./Dockerfile), verify install/runtime behavior instead of assuming these stay dev-only.
 - Runtime baseline: [package.json](./package.json) requires Node `>=24`, and [Dockerfile](./Dockerfile) uses a multi-stage Node 24 Alpine build plus a hardened Alpine 3.24 FIPS runner.
+- CVE-2026-111497: require `brotli-libs>=1.2.1-r0` in the runner and execute `scripts/verify-brotli-runtime.sh` after its final package upgrade. Preserve the hardened base and Alpine's shared Brotli/OpenSSL linkage. Node's reported Brotli version is a compile-time value; verify the installed decoder package and linkage instead.
+- CI uses Node 24.22.1. Alpine 3.24 currently packages Node 24.18.1, so the production Node security-release upgrade remains pending a patched Alpine package. The Brotli package requirement addresses this CVE independently.
 - External services/data: GeoNames dumps from `https://download.geonames.org/export/dump/`; there is no database, message queue, or remote geocoding API in the application path.
 - Deployment targets: Google Container Registry naming is wired through [Makefile](./Makefile) and [helm/values.yaml.in](./helm/values.yaml.in), with Kubernetes packaging in [helm/](./helm/).
