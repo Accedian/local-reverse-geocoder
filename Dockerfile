@@ -1,7 +1,7 @@
 # Image layer for building the application
 # If the Node.js version changes, re-mirror the image before updating this digest.
-## builder : tag: "us-docker.pkg.dev/npav-172917/docker-mirrors/node:24.18.0-alpine3.24" ##
-FROM us-docker.pkg.dev/npav-172917/docker-mirrors/node@sha256:e94306bf71a92565cc216b3ce3f1071aefad0c305d0e54e11537b66452225e43 AS build
+## builder : tag: "us-docker.pkg.dev/npav-172917/docker-mirrors/node:24.22.1-alpine3.24" ##
+FROM us-docker.pkg.dev/npav-172917/docker-mirrors/node@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build
 
 RUN apk add --no-cache curl unzip
 
@@ -84,11 +84,15 @@ COPY --from=build --chown=node:node /usr/src/app/deploy/package.json ./package.j
 COPY --from=build --chown=node:node /usr/src/app/deploy/dist/app.js ./dist/app.js
 COPY --from=build --chown=node:node /usr/src/app/deploy/dist/index.js ./dist/index.js
 
+# Require the Brotli fix without replacing the hardened OS or shared-library Node.
+COPY scripts/verify-brotli-runtime.sh /usr/local/bin/verify-brotli-runtime.sh
+
 RUN apk update && \
-  apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/main 'nodejs~24' && \
+  apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.24/main 'nodejs~24' 'brotli-libs>=1.2.1-r0' && \
   apk add --no-cache dumb-init && \
   apk add --no-cache openssl --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/main && \
   apk upgrade && \
+  sh /usr/local/bin/verify-brotli-runtime.sh && \
   echo "Node.js: $(node --version)" && \
   echo "OpenSSL: $(openssl version)" && \
   rm -rf /var/cache/apk/*
