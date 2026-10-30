@@ -1,0 +1,10 @@
+# CODEOWNERS
+* @Accedian/pca-sub-team-sbe-analytics
+
+/.circleci/** @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
+/.github/** @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
+/agents.md @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
+/CHANGELOG.md @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
+/Dockerfile @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
+/Makefile @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
+/current-version @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
