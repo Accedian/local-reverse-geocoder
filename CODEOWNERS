@@ -3,5 +3,8 @@
 /AGENTS.md @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
 /CHANGELOG.md @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
 /Dockerfile @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/.dockerignore @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
 /Makefile @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
 /current-version @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/package.json @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/pnpm-lock.yaml @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
