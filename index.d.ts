@@ -32,6 +32,8 @@ export interface InitOptions {
   dumpDirectory?: string;
 }
 
+export type initCallback = (error: Error | null) => void;
+
 export interface PointsEntry {
   latitude: number | string;
   longitude: number | string;
@@ -57,7 +59,7 @@ export type lookUpCallback =
   | ((error: null, addresses: Array<Array<AddressObject>>) => void);
 
 declare const _default: {
-  init: (options?: InitOptions, callback?: () => void) => void;
+  init: (options?: InitOptions, callback?: initCallback) => void;
   lookUp(points: PointsEntry | PointsEntry[], callback: lookUpCallback): void;
   lookUp(
     points: PointsEntry | PointsEntry[],

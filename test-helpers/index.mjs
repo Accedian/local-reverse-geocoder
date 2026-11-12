@@ -80,7 +80,7 @@ export function generateSelfSignedCert() {
       ],
       { stdio: 'ignore' }
     );
-  } catch (e) {
+  } catch {
     rmrf(dir);
     return null;
   }
@@ -124,7 +124,7 @@ export async function startProxy() {
     let target;
     try {
       target = new URL(req.url);
-    } catch (e) {
+    } catch {
       res.writeHead(400);
       return res.end('bad request');
     }
