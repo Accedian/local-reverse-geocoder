@@ -51,15 +51,17 @@
   "homepage": "https://github.com/tomayac/local-reverse-geocoder",
   "pnpm": {
     "overrides": {
-      "body-parser@<1.20.6": "1.20.6",
+      "body-parser@<1.20.9": "1.20.9",
       "brace-expansion@<1.1.18": "1.1.18",
       "cookie@<0.7.0": "0.7.2",
       "linkify-it@<=5.0.1": "5.0.2",
       "lodash@>=4.0.0 <=4.17.23": "4.18.1",
-      "markdown-it@<=14.1.1": "14.3.1",
+      "markdown-it@<14.3.3": "14.3.3",
       "minimatch@>=3 <3.1.4": "3.1.5",
+      "minimatch@>=7.0.0 <11.0.1": "11.0.1",
       "path-to-regexp@<0.1.13": "0.1.13",
-      "qs@<6.16.0": "6.16.0",
+      "proxy-addr@<2.0.8": "2.0.8",
+      "qs@<=6.16.0": "6.16.1",
       "send@<0.19.0": "0.19.0",
       "serve-static@<1.16.0": "1.16.2"
     }
