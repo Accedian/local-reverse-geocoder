@@ -1,11 +1,11 @@
 # CODEOWNERS
-* @Accedian/pca-sub-team-sbe-analytics
+* @Accedian/pca-portfolio-analytics
 
-/.circleci/** @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
-/.github/** @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
-/agents.md @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
-/AGENTS.md @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
-/CHANGELOG.md @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
-/Dockerfile @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
-/Makefile @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
-/current-version @Accedian/pca-sub-team-sbe-analytics @Accedian/pca-portfolio-cloudops
+/.circleci/** @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/.github/** @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/agents.md @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/AGENTS.md @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/CHANGELOG.md @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/Dockerfile @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/Makefile @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
+/current-version @Accedian/pca-portfolio-analytics @Accedian/pca-portfolio-cloudops
