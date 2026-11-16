@@ -69,8 +69,9 @@ RUN test -e /usr/src/app/deploy/node_modules/express/package.json && \
     test ! -e /usr/src/app/deploy/node_modules/@types
 
 # Image layer for running the application
-## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.24-fips-2026.09.09" ##
-FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.24-fips-2026.09.09@sha256:7bef2bf4f46722627ee2261a327693c32466c9c589e97d28bd61fa5de9374e72 AS runner
+## runtime : tag: "gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.24-fips" ##
+# Image created: 2026-10-22 (linux/amd64 and linux/arm64 config metadata).
+FROM gcr.io/npav-172917/sto-ccc-cloud9/hardened_alpine:3.24-fips@sha256:9d952585020c7cc5c4523cafa839f6611fd389b5befff371ffe43afe618e8b45 AS runner
 
 WORKDIR /usr/src/app
 
