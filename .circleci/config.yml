@@ -35,11 +35,12 @@ jobs:
             git config --global user.email "${CIRCLE_USERNAME}@accedian.com"
             git config --global user.name "CircleCI"
             git tag "${DOCKER_VER}"
-            git push --tags
+            git push origin "refs/tags/${DOCKER_VER}:refs/tags/${DOCKER_VER}"
       - persist_to_workspace:
           root: .
           paths:
             - service-tag.txt
+            - helm/Chart.yaml
   image_signing:
     machine: true
     resource_class: accedian/prod_bes-ubuntu24-medium
