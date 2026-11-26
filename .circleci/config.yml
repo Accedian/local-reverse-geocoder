@@ -82,7 +82,7 @@ workflows:
           - or:
               - equal: [main, << pipeline.git.branch >>]
               - matches:
-                  pattern: /^release\/[0-9]+\.[0-9]+\.[0-9]+$/
+                  pattern: '^release/[0-9]+\.[0-9]+\.[0-9]+$'
                   value: << pipeline.git.branch >>
           - matches:
               pattern: "^https://github.com/[Aa]ccedian/.*"
@@ -97,7 +97,7 @@ workflows:
         - or:
             - equal: [main, << pipeline.git.branch >>]
             - matches:
-                pattern: /^release\/[0-9]+\.[0-9]+\.[0-9]+$/
+                pattern: '^release/[0-9]+\.[0-9]+\.[0-9]+$'
                 value: << pipeline.git.branch >>
         - matches:
             pattern: "^https://github.com/[Aa]ccedian/.*"
