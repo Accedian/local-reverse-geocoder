@@ -2,6 +2,8 @@
 # If the Node.js version changes, re-mirror the image before updating this digest.
 ## builder : tag: "artifactory.devhub-cloud.cisco.com/sto-cg-docker/node:v24.22.3-dev" ##
 FROM artifactory.devhub-cloud.cisco.com/sto-cg-docker/node:v24.22.3-dev@sha256:f7fe30d5c60634e5c5d5b3e3dbf74b130d169ea3578cb8cb4837055ef8be03a6 AS build
+# The -dev image defaults to a non-root user; apk package installation needs root.
+USER root
 
 RUN apk add --no-cache curl unzip
 
