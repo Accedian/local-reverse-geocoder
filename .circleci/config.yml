@@ -1,8 +1,24 @@
 version: 2.1
 orbs:
   pca-bes: accedian/pca-bes@2
+
 jobs:
-  build_and_release:
+  # Build and validate the image on every non-release branch, including PRs.
+  # This job only loads the image locally; it does not publish or tag it.
+  build:
+    machine: true
+    resource_class: accedian/prod_bes-ubuntu24-medium
+    steps:
+      - pca-bes/workspacesetup
+      - run:
+          name: "Build Docker image (validation only)"
+          command: |
+            export DOCKER_CLI_EXPERIMENTAL=enabled
+            docker buildx create --name circleBuilder
+            docker buildx use circleBuilder
+            make docker DOCKER_VER="pr-${CIRCLE_SHA1}" BUILD_PLATFORMS=linux/amd64
+
+  release:
     machine: true
     resource_class: accedian/prod_bes-ubuntu24-medium
     steps:
@@ -40,6 +56,7 @@ jobs:
           root: .
           paths:
             - service-tag.txt
+
   image_signing:
     machine: true
     resource_class: accedian/prod_bes-ubuntu24-medium
@@ -56,11 +73,42 @@ jobs:
             echo 'export CONTAINER_REGISTRY="weld-reverse-geocoder"' >> "$BASH_ENV"
       - pca-bes/image_signing:
           working_directory: "."
+
 workflows:
-  build:
+  build_only:
+    when:
+      not:
+        and:
+          - or:
+              - equal: [main, << pipeline.git.branch >>]
+              - matches:
+                  pattern: /^release\/[0-9]+\.[0-9]+\.[0-9]+$/
+                  value: << pipeline.git.branch >>
+          - matches:
+              pattern: "^https://github.com/[Aa]ccedian/.*"
+              value: << pipeline.project.git_url >>
     jobs:
-      - build_and_release:
+      - build:
+          context: bes-builder-gcp-skybuilder-prd-51843-ro
+
+  build_and_release:
+    when:
+      and:
+        - or:
+            - equal: [main, << pipeline.git.branch >>]
+            - matches:
+                pattern: /^release\/[0-9]+\.[0-9]+\.[0-9]+$/
+                value: << pipeline.git.branch >>
+        - matches:
+            pattern: "^https://github.com/[Aa]ccedian/.*"
+            value: << pipeline.project.git_url >>
+    jobs:
+      - build:
+          context: bes-builder-gcp-skybuilder-prd-51843-ro
+      - release:
           context: bes-builder-gcp-skybuilder-prd-51843-rw
+          requires:
+            - build
           filters:
             branches:
               only:
@@ -69,4 +117,9 @@ workflows:
       - image_signing:
           context: bes-builder-gcp-skybuilder-prd-51843-rw
           requires:
-            - build_and_release
+            - release
+          filters:
+            branches:
+              only:
+                - main
+                - /^release\/[0-9]+\.[0-9]+\.[0-9]+$/
