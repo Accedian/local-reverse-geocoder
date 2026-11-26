@@ -1,7 +1,9 @@
 # Image layer for building the application
 # If the Node.js version changes, re-mirror the image before updating this digest.
-## builder : tag: "us-docker.pkg.dev/npav-172917/docker-mirrors/node:24.22.1-alpine3.24" ##
-FROM us-docker.pkg.dev/npav-172917/docker-mirrors/node@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build
+## builder : tag: "artifactory.devhub-cloud.cisco.com/sto-cg-docker/node:v24.22.3-dev" ##
+FROM artifactory.devhub-cloud.cisco.com/sto-cg-docker/node:v24.22.3-dev@sha256:f7fe30d5c60634e5c5d5b3e3dbf74b130d169ea3578cb8cb4837055ef8be03a6 AS build
+# The -dev image defaults to a non-root user; apk package installation needs root.
+USER root
 
 RUN apk add --no-cache curl unzip
 
